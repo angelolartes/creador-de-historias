@@ -1,79 +1,184 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de Flyers</title>
+
+<title>Automobili Group - Generador de Flyers</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
+
 body{
     background:#111827;
     color:white;
-    font-family:Arial, sans-serif;
 }
 
 .flyer{
-    background:linear-gradient(135deg,#dc2626,#991b1b);
+    width:400px;
+    height:600px;
+    position:relative;
+    overflow:hidden;
 }
-</style>
 
+.theme-sport{
+    background:linear-gradient(180deg,#000000,#7f1d1d);
+}
+
+.theme-finance{
+    background:linear-gradient(180deg,#1e3a8a,#111827);
+}
+
+.theme-used{
+    background:linear-gradient(180deg,#374151,#111827);
+}
+
+.car-image{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+}
+
+.logo{
+    position:absolute;
+    top:15px;
+    right:15px;
+    width:80px;
+}
+
+</style>
 </head>
 <body>
 
-<div class="min-h-screen flex flex-col items-center justify-center p-5">
+<div class="container mx-auto p-6">
 
-    <h1 class="text-4xl font-bold mb-8">
-        Generador de Flyers
+    <h1 class="text-4xl font-bold mb-6">
+        Generador de Flyers Automobili Group
     </h1>
 
-    <div id="flyer-preview"
-         class="flyer w-[350px] h-[450px] rounded-xl shadow-2xl p-6 flex flex-col justify-between transition-all">
+    <div class="grid md:grid-cols-2 gap-8">
 
         <div>
-            <h2 id="display-brand"
-                class="text-4xl font-black uppercase">
-                Toyota
-            </h2>
 
-            <h3 id="display-model"
-                class="text-2xl mt-2">
-                Corolla
-            </h3>
+            <input
+            id="marca"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Marca">
+
+            <input
+            id="modelo"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Modelo">
+
+            <input
+            id="anio"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Año">
+
+            <input
+            id="precio"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Precio">
+
+            <input
+            id="anticipo"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Anticipo">
+
+            <input
+            id="cuota"
+            class="w-full p-3 rounded text-black mb-3"
+            placeholder="Cuota">
+
+            <select
+            id="theme"
+            class="w-full p-3 rounded text-black mb-3">
+
+                <option value="theme-sport">Deportiva</option>
+                <option value="theme-finance">Financiación</option>
+                <option value="theme-used">Usados</option>
+
+            </select>
+
+            <input
+            type="file"
+            id="photoUpload"
+            accept="image/*"
+            class="w-full mb-4">
+
+            <button
+            onclick="actualizarFlyer()"
+            class="bg-red-600 px-6 py-3 rounded font-bold">
+                ACTUALIZAR
+            </button>
+
         </div>
 
         <div>
-            <p class="text-xl font-bold">
-                ¡LISTO PARA VENDER!
-            </p>
 
-            <p class="opacity-80 mt-2">
-                Financiación disponible
-            </p>
+            <div
+            id="flyer"
+            class="flyer theme-sport rounded-xl shadow-2xl">
+
+                <img
+                src="logo.png"
+                class="logo"
+                alt="logo">
+
+                <img
+                id="previewImage"
+                class="car-image"
+                src="https://via.placeholder.com/400x250">
+
+                <div class="p-5">
+
+                    <h2
+                    id="previewMarca"
+                    class="text-4xl font-black">
+                        MARCA
+                    </h2>
+
+                    <h3
+                    id="previewModelo"
+                    class="text-2xl">
+                        MODELO
+                    </h3>
+
+                    <div class="mt-6 space-y-2">
+
+                        <p id="previewAnio">
+                            Año:
+                        </p>
+
+                        <p id="previewPrecio">
+                            Precio:
+                        </p>
+
+                        <p id="previewAnticipo">
+                            Anticipo:
+                        </p>
+
+                        <p id="previewCuota">
+                            Cuota:
+                        </p>
+
+                    </div>
+
+                    <div class="mt-8 text-center">
+
+                        <div class="bg-red-600 p-3 rounded font-bold">
+                            CONSULTÁ AHORA
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-
-    </div>
-
-    <div class="mt-8 w-full max-w-md space-y-4">
-
-        <input
-            type="text"
-            id="brand-input"
-            placeholder="Marca"
-            class="w-full p-3 rounded text-black">
-
-        <input
-            type="text"
-            id="model-input"
-            placeholder="Modelo"
-            class="w-full p-3 rounded text-black">
-
-        <button
-            onclick="updateFlyer()"
-            class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded font-bold">
-            ACTUALIZAR FLYER
-        </button>
 
     </div>
 
@@ -81,25 +186,54 @@ body{
 
 <script>
 
-const brandInput = document.getElementById("brand-input");
-const modelInput = document.getElementById("model-input");
+const upload = document.getElementById("photoUpload");
 
-brandInput.addEventListener("input", updateFlyer);
-modelInput.addEventListener("input", updateFlyer);
+upload.addEventListener("change", function(e){
 
-function updateFlyer(){
+    const file = e.target.files[0];
 
-    const brand = brandInput.value.trim();
-    const model = modelInput.value.trim();
+    if(!file) return;
 
-    document.getElementById("display-brand").textContent =
-        brand || "TOYOTA";
+    const reader = new FileReader();
 
-    document.getElementById("display-model").textContent =
-        model || "COROLLA";
+    reader.onload = function(event){
+
+        document.getElementById("previewImage").src =
+        event.target.result;
+
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+function actualizarFlyer(){
+
+    document.getElementById("previewMarca").innerText =
+    document.getElementById("marca").value || "MARCA";
+
+    document.getElementById("previewModelo").innerText =
+    document.getElementById("modelo").value || "MODELO";
+
+    document.getElementById("previewAnio").innerText =
+    "Año: " + document.getElementById("anio").value;
+
+    document.getElementById("previewPrecio").innerText =
+    "Precio: " + document.getElementById("precio").value;
+
+    document.getElementById("previewAnticipo").innerText =
+    "Anticipo: " + document.getElementById("anticipo").value;
+
+    document.getElementById("previewCuota").innerText =
+    "Cuota: " + document.getElementById("cuota").value;
+
+    document.getElementById("flyer").className =
+    "flyer rounded-xl shadow-2xl " +
+    document.getElementById("theme").value;
 }
 
 </script>
 
 </body>
 </html>
+```
