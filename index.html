@@ -4,49 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Flyers</title>
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-gray-100">
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useRef } = React;
-        
-        function App() {
-            const [data, setData] = useState({ brand: 'MARCA', model: 'MODELO', price: '$0' });
-            const flyerRef = useRef(null);
-            
-            const handleDownload = async () => {
-                if (window.html2canvas && flyerRef.current) {
-                    const canvas = await window.html2canvas(flyerRef.current);
-                    const link = document.createElement('a');
-                    link.download = 'flyer.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
-                }
-            };
+<body class="bg-gray-900 text-white">
 
-            return (
-                <div className="flex flex-col items-center p-10 min-h-screen bg-gray-900 text-white">
-                    <h1 className="text-2xl font-bold mb-6">Creador de Flyers</h1>
-                    <div className="flex gap-4 mb-8">
-                        <input className="p-2 text-black rounded" placeholder="Marca" onChange={e => setData({...data, brand: e.target.value})} />
-                        <input className="p-2 text-black rounded" placeholder="Modelo" onChange={e => setData({...data, model: e.target.value})} />
-                        <button onClick={handleDownload} className="bg-red-600 px-4 py-2 rounded font-bold hover:bg-red-700">Descargar</button>
+    <!-- Mensaje de depuración: Si ves esto, el HTML funciona pero React falla -->
+    <div id="root">
+        <div class="flex items-center justify-center h-screen">
+            <h1 class="text-xl">Cargando aplicación... Si esto no cambia, revisa la consola del navegador (F12).</h1>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        try {
+            const { useState } = React;
+            
+            function App() {
+                return (
+                    <div className="p-10">
+                        <h1 className="text-4xl font-bold">¡Hola! La aplicación está funcionando.</h1>
+                        <p className="mt-4">Si ves este texto, el problema técnico anterior estaba en la carga de los scripts.</p>
                     </div>
-                    <div ref={flyerRef} className="w-[400px] h-[500px] bg-gradient-to-br from-blue-900 to-black p-10 flex flex-col justify-center border-4 border-white">
-                        <h2 className="text-4xl font-black">{data.brand}</h2>
-                        <h3 className="text-6xl font-black text-red-500">{data.model}</h3>
-                        <p className="mt-10 text-3xl font-bold">{data.price}</p>
-                    </div>
+                );
+            }
+            
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+            
+        } catch (error) {
+            document.getElementById('root').innerHTML = `
+                <div class="p-10 text-red-500">
+                    <h1>Error crítico:</h1>
+                    <pre>${error.message}</pre>
                 </div>
-            );
+            `;
         }
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
     </script>
 </body>
 </html>
