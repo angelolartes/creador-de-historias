@@ -1,5 +1,65 @@
-<button
-onclick="generarIA()"
-class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded mt-4">
-✨ GENERAR CON IA
-</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Profesional de Flyers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="bg-black text-white min-h-screen p-5">
+
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-8">
+        
+        <!-- PANEL DE CONTROL -->
+        <div class="flex-1 bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
+            <h2 class="text-xl font-bold mb-4 text-red-500">Editor de Flyers</h2>
+            <div class="space-y-3">
+                <input type="text" id="brand" placeholder="Marca" class="w-full p-2 bg-black border border-zinc-700 rounded text-white">
+                <input type="text" id="model" placeholder="Modelo" class="w-full p-2 bg-black border border-zinc-700 rounded text-white">
+                <input type="text" id="price" placeholder="Precio" class="w-full p-2 bg-black border border-zinc-700 rounded text-white">
+                
+                <button onclick="generarSugerenciaIA()" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded font-bold transition">✨ Sugerencia con IA</button>
+                <button onclick="descargarFlyer()" class="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-black text-lg transition">DESCARGAR PNG</button>
+            </div>
+        </div>
+
+        <!-- FLYER VISUAL -->
+        <div id="flyer" class="w-[350px] h-[500px] bg-white text-black p-8 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+            <div class="absolute top-0 left-0 w-full h-2 bg-red-600"></div>
+            <div>
+                <h1 id="view-brand" class="text-4xl font-black uppercase italic">MARCA</h1>
+                <h2 id="view-model" class="text-2xl font-bold text-zinc-600">Modelo</h2>
+                <div id="view-ia-text" class="mt-4 text-sm italic text-zinc-800 border-l-2 border-red-600 pl-2"></div>
+            </div>
+            <div class="text-3xl font-black text-red-600 border-t border-zinc-300 pt-4" id="view-price">$0</div>
+        </div>
+    </div>
+
+    <script>
+        // Sincronización en tiempo real
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                document.getElementById('view-' + input.id).innerText = input.value;
+            });
+        });
+
+        // Simulación de IA (Aquí conectarás tu API más adelante)
+        function generarSugerenciaIA() {
+            const marca = document.getElementById('brand').value;
+            const texto = `¡La oportunidad que esperabas para tener tu ${marca}! Financiación exclusiva y entrega inmediata.`;
+            document.getElementById('view-ia-text').innerText = texto;
+        }
+
+        // Descarga de imagen
+        function descargarFlyer() {
+            html2canvas(document.getElementById('flyer')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'mi-flyer-venta.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
