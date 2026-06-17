@@ -1,43 +1,99 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motor de Ventas Automobili Group</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-zinc-950 text-white p-6">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <div class="max-w-md mx-auto bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-2xl">
-        <h1 class="text-2xl font-black text-red-600 mb-6 uppercase tracking-tighter">Motor de Venta</h1>
-        
-        <div class="space-y-4">
-            <input type="text" id="marca" placeholder="Marca (Ej: Volkswagen)" class="w-full p-3 bg-black rounded-xl border border-zinc-700">
-            <input type="text" id="modelo" placeholder="Modelo (Ej: Taos Highline)" class="w-full p-3 bg-black rounded-xl border border-zinc-700">
-            <input type="text" id="precio" placeholder="Precio Contado" class="w-full p-3 bg-black rounded-xl border border-zinc-700">
-            <input type="text" id="cuota" placeholder="Valor de Cuota" class="w-full p-3 bg-black rounded-xl border border-zinc-700">
-            
-            <button onclick="enviarWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 py-4 rounded-xl font-bold text-lg transition shadow-lg shadow-green-900/20">
-                ENVIAR POR WHATSAPP 🚀
-            </button>
-        </div>
+<title>Automobili Group - Generador de Flyers</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="panel">
+
+        <h1>🚗 Generador de Flyers</h1>
+
+        <input id="marca" placeholder="Marca">
+        <input id="modelo" placeholder="Modelo">
+        <input id="anio" placeholder="Año">
+        <input id="precio" placeholder="Precio">
+        <input id="anticipo" placeholder="Anticipo">
+        <input id="cuota" placeholder="Cuota">
+
+        <select id="tema">
+            <option value="deportivo">Deportivo</option>
+            <option value="financiacion">Financiación</option>
+            <option value="premium">Premium</option>
+        </select>
+
+        <input type="file" id="foto" accept="image/*">
+
+        <button onclick="generarFlyer()">
+            GENERAR FLYER
+        </button>
+
     </div>
 
-    <script>
-        function enviarWhatsApp() {
-            const marca = document.getElementById('marca').value;
-            const modelo = document.getElementById('modelo').value;
-            const precio = document.getElementById('precio').value;
-            const cuota = document.getElementById('cuota').value;
+    <div class="preview">
 
-            const mensaje = `🔥 ¡Oportunidad en Automobili Group! 🔥%0A%0A` +
-                            `Vehículo: ${marca} ${modelo}%0A` +
-                            `Precio de lista: $${precio}%0A` +
-                            `Cuota accesible desde: $${cuota}%0A%0A` +
-                            `¿Te gustaría que te mande más fotos o coordinar un test drive?`;
+        <div id="flyer" class="flyer deportivo">
 
-            window.open(`https://wa.me/?text=${mensaje}`, '_blank');
-        }
-    </script>
+            <div class="logo">
+                AUTOMOBILI GROUP
+            </div>
+
+            <img
+                id="imagenAuto"
+                class="imagen-auto"
+                src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200"
+            >
+
+            <div class="contenido">
+
+                <h2 id="tituloMarca">
+                    TOYOTA
+                </h2>
+
+                <h3 id="tituloModelo">
+                    COROLLA
+                </h3>
+
+                <div class="datos">
+
+                    <p id="datoAnio">Año: 2024</p>
+                    <p id="datoPrecio">Precio: $30.000.000</p>
+                    <p id="datoAnticipo">Anticipo: $5.000.000</p>
+                    <p id="datoCuota">Cuota: $299.000</p>
+
+                </div>
+
+                <div class="beneficios">
+
+                    <p>✓ Tomamos usado</p>
+                    <p>✓ Financiación disponible</p>
+                    <p>✓ Entrega pactada</p>
+
+                </div>
+
+                <div class="cta">
+                    CONSULTÁ AHORA
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
 </body>
 </html>
+```
