@@ -1,549 +1,243 @@
-import React, { useState, useRef } from 'react';
-import { Download, Image as ImageIcon, Upload, Palette, Car, DollarSign, Calendar, Type, Check, Shield } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Flyers Automotores - Elegancia Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// Definimos los 3 temas visuales disponibles
-const THEMES = {
-  PREMIUM: {
-    id: 'premium',
-    name: 'Elegancia Premium',
-    background: 'bg-gradient-to-br from-gray-900 to-black',
-    textColor: 'text-white',
-    accentColor: 'text-amber-400',
-    borderColor: 'border-amber-400',
-    font: 'font-serif',
-    layout: 'classic' // Layout tipo revista
-  },
-  SPORT: {
-    id: 'sport',
-    name: 'Deportivo Agresivo',
-    background: 'bg-gradient-to-br from-red-700 via-red-900 to-black',
-    textColor: 'text-white',
-    accentColor: 'text-red-400',
-    borderColor: 'border-red-500',
-    font: 'font-sans font-bold italic',
-    layout: 'angled' // Layout con ángulos y dinamismo
-  },
-  MODERN: {
-    id: 'modern',
-    name: 'Moderno Minimalista',
-    background: 'bg-slate-50',
-    textColor: 'text-slate-900',
-    accentColor: 'text-blue-600',
-    borderColor: 'border-blue-600',
-    font: 'font-sans font-light',
-    layout: 'clean' // Layout limpio y centrado
-  }
-};
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0d0d0d;
+            color: #f3f4f6;
+        }
+        .text-neon-red {
+            text-shadow: 0 0 10px rgba(220, 38, 38, 0.7), 0 0 20px rgba(220, 38, 38, 0.4);
+        }
+        .border-neon-red {
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.5);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
 
-// Datos iniciales por defecto del vehículo
-const INITIAL_VEHICLE_DATA = {
-  brand: 'MARCA',
-  model: 'MODELO VERSIÓN',
-  year: '2024',
-  mileage: '0 km',
-  price: '$0.000.000',
-  features: 'Transmisión Automática • Asientos de Cuero • Pantalla Táctil',
-  contact: 'Tel: 123-456-7890 | @tuconcesionaria'
-};
+    <div id="root"></div>
 
-export default function AutoFlyerCreator() {
-  const [activeTheme, setActiveTheme] = useState(THEMES.MODERN);
-  const [vehicleData, setVehicleData] = useState(INITIAL_VEHICLE_DATA);
-  const [carImage, setCarImage] = useState('https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=1000');
-  const [logoImage, setLogoImage] = useState('https://via.placeholder.com/150x50/e2e8f0/475569?text=TU+LOGO');
-  const [isExporting, setIsExporting] = useState(false);
-  const flyerRef = useRef(null);
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
 
-  // Función para manejar cambios en los campos de texto
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setVehicleData(prev => ({ ...prev, [name]: value }));
-  };
+        function FlyerGenerator() {
+            // Textos configurables (Se llenan con valores iniciales idénticos a tu foto)
+            const [brand, setBrand] = useState("VOLKSWAGEN");
+            const [model, setModel] = useState("TERA");
+            const [topText, setTopText] = useState("RETIRÁ TU PRÓXIMO");
+            const [deliveryDays, setDeliveryDays] = useState("DE 7 A 15 DÍAS");
+            const [middleText1, setMiddleText1] = useState("SUBITE A MÁS DISEÑO, TECNOLOGÍA Y CONFORT.");
+            const [middleText2, setMiddleText2] = useState("SUBITE A MÁS TERA.");
+            const [feature1Title, setFeature1Title] = useState("FINANCIACIONES");
+            const [feature1Bold, setFeature1Bold] = useState("FLEXIBLES");
+            const [feature1Sub, setFeature1Sub] = useState("ADAPTADAS A VOS");
+            const [feature2Title, setFeature2Title] = useState("HACEMOS");
+            const [feature2Bold, setFeature2Bold] = useState("LLAVE POR LLAVE");
+            const [feature2Sub, setFeature2Sub] = useState("PARA QUE NO TE QUEDES A PIE");
+            const [feature3Title, setFeature3Title] = useState("PLANES A TU MEDIDA");
+            const [feature3Bold, setFeature3Bold] = useState("CON CUOTAS QUE");
+            const [feature3Sub, setFeature3Sub] = useState("SE ADAPTAN A VOS");
+            const [stockMain, setStockMain] = useState("AMPLIO STOCK DISPONIBLE");
+            const [stockSub, setStockSub] = useState("UNIDADES CON ENTREGA ASEGURADA");
+            const [stockQuery, setStockQuery] = useState("CONSULTÁ POR VERSIONES Y COLORES");
+            const [ctaText, setCtaText] = useState("¡CONSULTANOS AHORA!");
+            const [ctaSub, setCtaSub] = useState("TE ASESORAMOS Y RESERVÁS TU TERA");
 
-  // Simulación de carga desde Google Drive
-  // NOTA PARA EL USUARIO: En un entorno real, aquí se integraría Google Picker API.
-  // Requiere configuración en Google Cloud Console (Client ID, API Key).
-  const handleGoogleDriveSelect = () => {
-    alert("Simulación: Abriendo Google Picker...\n\nEn un entorno de producción, esta acción abriría una ventana emergente conectada a tu Google Drive para seleccionar imágenes directamente de una carpeta específica.");
-    
-    // Simulamos la selección de una nueva imagen después de 'usar' Google Drive
-    setTimeout(() => {
-        setCarImage('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=1000'); // Un BMW de ejemplo
-    }, 1000);
-  };
+            // Estado de la foto del auto (inicia con un auto genérico dibujado en código)
+            const [carImage, setCarImage] = useState("");
+            const [isExporting, setIsExporting] = useState(false);
+            const flyerRef = useRef(null);
 
-  // Función para carga de archivos locales (alternativa a Drive)
-  const handleLocalImageUpload = (e, setImageTarget) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageTarget(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+            useEffect(() => {
+                setCarImage("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 300' fill='none'><path d='M150 180 L200 120 L400 120 L480 170 L520 180 L540 210 L60 210 Z' fill='%23222' stroke='%23dc2626' stroke-width='3'/><circle cx='160' cy='210' r='35' fill='%23111' stroke='%23fff' stroke-width='2'/><circle cx='440' cy='210' r='35' fill='%23111' stroke='%23fff' stroke-width='2'/></svg>");
+            }, []);
 
-  // Función para exportar el flyer como imagen
-  const exportFlyer = async () => {
-    setIsExporting(true);
-    
-    try {
-      // Como no podemos usar la librería externa html2canvas directamente aquí sin imports complejos,
-      // simulamos el proceso de descarga creando un canvas básico y descargándolo.
-      // En un proyecto real, se instalaría 'html2canvas' y se usaría:
-      // const canvas = await html2canvas(flyerRef.current);
-      // Simulamos el proceso de descarga creando un canvas básico y descargándolo.
-      
-      const canvas = document.createElement('canvas');
-      canvas.width = 1080;
-      canvas.height = 1350; // Ajustado a formato vertical 4:5 para este diseño
-      const ctx = canvas.getContext('2d');
-      
-      // Dibujamos un fondo simple para la simulación
-      ctx.fillStyle = activeTheme.id === 'modern' ? '#f8fafc' : (activeTheme.id === 'premium' ? '#111827' : '#7f1d1d');
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = activeTheme.textColor === 'text-white' ? '#ffffff' : '#0f172a';
-      ctx.font = '48px sans-serif';
-      ctx.fillText(`${vehicleData.brand} ${vehicleData.model}`, 50, 100);
-      ctx.fillText(`Simulación de Exportación - Instala html2canvas`, 50, 200);
+            // Lógica para cargar cualquier foto desde tu computadora
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setCarImage(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
 
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `Flyer_${vehicleData.brand}_${vehicleData.model}.png`;
-      link.click();
-    } catch (error) {
-      console.error("Error al exportar:", error);
-      alert("Hubo un error al generar la imagen.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  return (
-    <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
-      {/* Panel Izquierdo: Controles */}
-      <div className="w-1/3 min-w-[350px] bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-10">
-        <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
-          <Palette className="text-blue-600" />
-          <h1 className="text-xl font-bold text-gray-800">Creador de Flyers</h1>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          
-          {/* SECCIÓN 1: Temáticas */}
-          <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-               <Palette size={16} /> 1. Elige una Temática
-            </h2>
-            <div className="grid grid-cols-1 gap-3">
-              {Object.values(THEMES).map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => setActiveTheme(theme)}
-                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                    activeTheme.id === theme.id 
-                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <span className="font-medium text-gray-800 block">{theme.name}</span>
-                  <span className="text-xs text-gray-500">{theme.id === 'premium' ? 'Oscuro y elegante' : theme.id === 'sport' ? 'Rojo dinámico' : 'Claro y limpio'}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <hr className="border-gray-100" />
-
-          {/* SECCIÓN 2: Imágenes (Integración Drive) */}
-          <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-               <ImageIcon size={16} /> 2. Fotos del Vehículo
-            </h2>
-            
-            <div className="space-y-4">
-              {/* Botón Principal: Conectar a Drive */}
-              <button 
-                onClick={handleGoogleDriveSelect}
-                className="w-full flex items-center justify-center gap-2 bg-[#4285F4] hover:bg-[#3367D6] text-white py-3 px-4 rounded-lg font-medium transition-colors shadow-sm"
-              >
-                {/* SVG Logo de Google Drive simplificado */}
-                <svg className="w-5 h-5" viewBox="0 0 87.3 127.3" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M63.3 56l-22.1-38.3h-28.5l22.1 38.3h28.5z" fill="#0066da"/>
-                  <path d="M22.1 38.3l-22.1 38.3 14.3 24.6 22.1-38.3-14.3-24.6z" fill="#00ac47"/>
-                  <path d="M41.2 17.7l-14.3 24.6h57.1l14.3-24.6h-57.1z" fill="#ea4335"/>
-                  <path d="M41.2 94.3h57.1l-14.3-24.6h-57.1l14.3 24.6z" fill="#00832d"/>
-                  <path d="M84 70l-22.1-38.3-14.3 24.6 22.1 38.3 14.3-24.6z" fill="#2684fc"/>
-                  <path d="M41.2 94.3l-22.1-38.3-14.3 24.6 22.1 38.3 14.3-24.6z" fill="#ffba00"/>
-                </svg>
-                Seleccionar desde Google Drive
-              </button>
-
-              <div className="text-center text-sm text-gray-400 font-medium">O</div>
-
-              {/* Opción secundaria: Subida local */}
-              <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors text-center cursor-pointer">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => handleLocalImageUpload(e, setCarImage)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Upload className="mx-auto text-gray-400 mb-2" size={24} />
-                <span className="text-sm text-gray-600 font-medium">Subir foto desde este equipo</span>
-              </div>
-            </div>
-
-            {/* Logo de la empresa */}
-             <div className="mt-6">
-                <label className="block text-xs font-medium text-gray-600 mb-2">Logo de la Concesionaria</label>
-                <div className="relative border border-gray-300 rounded-md p-2 hover:bg-gray-50 flex items-center justify-between cursor-pointer">
-                    <img src={logoImage} alt="Logo actual" className="h-8 max-w-[100px] object-contain bg-gray-200 rounded" />
-                     <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={(e) => handleLocalImageUpload(e, setLogoImage)}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <span className="text-xs text-blue-600 font-medium px-2">Cambiar</span>
-                </div>
-            </div>
-          </section>
-
-          <hr className="border-gray-100" />
-
-          {/* SECCIÓN 3: Datos del Vehículo */}
-          <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-               <Type size={16} /> 3. Datos del Vehículo
-            </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><Car size={12}/> Marca</label>
-                  <input type="text" name="brand" value={vehicleData.brand} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Modelo</label>
-                  <input type="text" name="model" value={vehicleData.model} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><DollarSign size={12}/> Precio</label>
-                  <input type="text" name="price" value={vehicleData.price} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none font-bold text-green-700" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><Calendar size={12}/> Año</label>
-                        <input type="text" name="year" value={vehicleData.year} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Km</label>
-                        <input type="text" name="mileage" value={vehicleData.mileage} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Características (separadas por •)</label>
-                <input type="text" name="features" value={vehicleData.features} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Contacto / Redes</label>
-                <input type="text" name="contact" value={vehicleData.contact} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Botón de Exportar (Fijo al fondo) */}
-        <div className="p-4 bg-white border-t border-gray-200">
-           <button 
-            onClick={exportFlyer}
-            disabled={isExporting}
-            className={`w-full py-3 px-4 rounded-lg font-bold text-white flex items-center justify-center gap-2 transition-all shadow-md
-              ${isExporting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'}`}
-          >
-            <Download size={20} />
-            {isExporting ? 'Generando imagen...' : 'Descargar Flyer (1080x1080)'}
-          </button>
-        </div>
-      </div>
-
-      {/* Panel Derecho: Previsualización (Canvas) */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-200 overflow-y-auto pattern-dots">
-        
-        {/* Contenedor con aspecto 4:5 (Vertical ideal para Flyers) */}
-        <div className="relative shadow-2xl transition-all duration-500" style={{ width: '100%', maxWidth: '600px', aspectRatio: '4/5' }}>
-          
-          {/* ELEMENTO A EXPORTAR (Referenciado para html2canvas) */}
-          <div 
-            ref={flyerRef}
-            className={`absolute inset-0 overflow-hidden ${activeTheme.background} ${activeTheme.textColor} ${activeTheme.font}`}
-            style={{ width: '100%', height: '100%' }} // Asegurar dimensiones
-          >
-            {/* --- RENDERIZADO CONDICIONAL SEGÚN EL TEMA --- */}
-
-            {/* TEMA: PREMIUM */}
-            {activeTheme.id === 'premium' && (
-              <div className="flex flex-col h-full bg-[#0a0a0a] text-white relative overflow-hidden font-sans italic">
-                {/* Background lines & glows to match the "Dynamic/Sport" neon vibe of the image */}
-                <div className="absolute inset-0 z-0 pointer-events-none">
-                     <div className="absolute top-0 right-0 w-full h-1/2 bg-gradient-to-b from-red-900/20 to-transparent"></div>
-                     <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-red-600/20 blur-[100px] rounded-full"></div>
-                     <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-red-600/15 blur-[100px] rounded-full"></div>
-                     <div className="absolute top-1/3 left-0 w-full h-0.5 bg-red-500/30 shadow-[0_0_15px_red] transform -rotate-12"></div>
-                     <div className="absolute bottom-1/3 left-0 w-full h-0.5 bg-red-500/30 shadow-[0_0_15px_red] transform rotate-6"></div>
-                </div>
-
-                <div className="relative z-10 flex flex-col h-full p-4 md:p-6 justify-between">
-                    {/* Header */}
-                    <div className="flex justify-between items-start">
-                        {/* Logo AG */}
-                        <div className="relative">
-                            <img src={logoImage} alt="Logo" className="h-16 md:h-24 w-16 md:w-24 object-contain drop-shadow-2xl z-10 relative" />
-                            <div className="absolute inset-0 bg-red-600/30 blur-xl rounded-full"></div>
-                        </div>
-                        
-                        <div className="text-right">
-                            <p className="text-sm md:text-lg font-bold tracking-widest text-gray-200">RETIRÁ TU PRÓXIMO</p>
-                            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white drop-shadow-lg leading-none mt-1">{vehicleData.brand}</h2>
-                            <h1 className="text-6xl md:text-[5.5rem] font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-gray-100 to-gray-500 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none -mt-1 md:-mt-2">{vehicleData.model}</h1>
-                        </div>
-                    </div>
-
-                    {/* Delivery & Badges */}
-                    <div className="absolute top-28 md:top-36 left-4 md:left-6 flex flex-col items-center">
-                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.8)] bg-black/80 relative">
-                            <Calendar className="text-white w-8 h-8 md:w-10 md:h-10" />
-                            <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full p-0.5 border-2 border-black">
-                                 <Check size={14} className="text-white font-bold"/>
-                            </div>
-                        </div>
-                        <div className="text-center mt-2">
-                            <p className="text-xs md:text-sm font-bold text-white leading-tight">ENTREGA</p>
-                            <p className="text-sm md:text-base font-black text-red-500 leading-tight">RÁPIDA</p>
-                            <p className="text-[9px] md:text-[11px] font-sans not-italic text-gray-300 mt-1 font-bold">DE 7 A 15 DÍAS</p>
-                        </div>
-                    </div>
-
-                    <div className="absolute top-36 md:top-48 right-0 text-right w-1/2 flex flex-col items-end">
-                        <div className="bg-red-600 px-6 md:px-10 py-1 shadow-[0_0_15px_rgba(220,38,38,0.6)] -skew-x-12 mr-4 md:mr-8 mb-6 md:mb-10">
-                            <span className="block skew-x-12 text-white font-black text-base md:text-2xl tracking-wider">DE 7 A 15 DÍAS</span>
-                        </div>
-                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.6)] bg-black/80 mr-4 md:mr-8">
-                             <span className="text-blue-100 font-bold text-2xl md:text-4xl not-italic">W</span>
-                        </div>
-                    </div>
-
-                    {/* Car Image (Center focus) */}
-                    <div className="flex-1 relative flex items-center justify-center mt-12 mb-6">
-                        <img src={carImage} alt="Vehículo" className="w-[130%] max-w-[130%] md:w-[120%] md:max-w-[120%] object-contain drop-shadow-[0_30px_30px_rgba(0,0,0,0.9)] z-20" />
-                    </div>
-
-                    {/* Slogan */}
-                    <div className="text-center z-20 mb-4 md:mb-6">
-                        <p className="text-sm md:text-lg font-bold text-white tracking-wider">SUBITE A MÁS DISEÑO, <span className="text-red-500">TECNOLOGÍA</span> Y CONFORT.</p>
-                        <p className="text-2xl md:text-4xl font-black text-white tracking-widest mt-1 drop-shadow-md">SUBITE A MÁS <span className="text-red-500">{vehicleData.model}</span>.</p>
-                    </div>
-
-                    {/* Grid Info */}
-                    <div className="grid grid-cols-3 gap-2 md:gap-4 z-20 border-t border-b border-red-900/60 py-3 md:py-4 relative bg-black/40 backdrop-blur-sm">
-                         <div className="absolute top-0 bottom-0 left-1/3 w-px bg-gradient-to-b from-transparent via-red-600 to-transparent shadow-[0_0_8px_red]"></div>
-                         <div className="absolute top-0 bottom-0 left-2/3 w-px bg-gradient-to-b from-transparent via-red-600 to-transparent shadow-[0_0_8px_red]"></div>
-
-                        {/* Item 1 */}
-                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
-                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-red-500 flex-shrink-0 flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_0_10px_rgba(255,0,0,0.5)] bg-black">
-                                <DollarSign size={18} className="md:w-5 md:h-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">FINANCIACIONES</p>
-                                <p className="text-[11px] md:text-sm font-black text-red-500 leading-tight">FLEXIBLES</p>
-                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">ADAPTADAS A VOS</p>
-                            </div>
-                        </div>
-                        
-                        {/* Item 2 */}
-                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
-                            <div className="flex-shrink-0 text-red-500 md:mt-1 drop-shadow-[0_0_5px_red]">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-8 md:h-8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                            </div>
-                            <div>
-                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">HACEMOS</p>
-                                <p className="text-[11px] md:text-sm font-black text-red-500 leading-tight">LLAVE POR LLAVE</p>
-                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">PARA QUE NO TE QUEDES A PIE</p>
-                            </div>
-                        </div>
-
-                        {/* Item 3 */}
-                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
-                            <div className="flex-shrink-0 md:mt-1 relative flex items-center justify-center drop-shadow-[0_0_5px_white]">
-                                 <Shield size={28} className="text-white md:w-8 md:h-8" strokeWidth={1.5} />
-                                 <Check size={14} className="text-red-500 absolute md:w-4 md:h-4" strokeWidth={3}/>
-                            </div>
-                            <div>
-                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">PLANES A TU MEDIDA</p>
-                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">CON CUOTAS QUE SE ADAPTAN A VOS</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stock Box */}
-                    <div className="flex items-center justify-between z-20 border border-red-900/50 bg-gradient-to-r from-red-950/60 to-transparent rounded px-3 md:px-5 py-2 md:py-3 mt-3 md:mt-4">
-                        <div className="flex items-center gap-3 md:gap-4">
-                            <Car className="text-white w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_5px_white]" />
-                            <div>
-                                <p className="text-xs md:text-base font-black text-white leading-tight tracking-wider">AMPLIO STOCK DISPONIBLE</p>
-                                <p className="text-[9px] md:text-xs font-bold text-red-500 leading-tight mt-0.5">UNIDADES CON ENTREGA ASEGURADA</p>
-                            </div>
-                        </div>
-                        <div className="text-right border-l border-red-900/80 pl-3 md:pl-4">
-                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">CONSULTÁ</p>
-                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">POR VERSIONES</p>
-                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">Y COLORES</p>
-                        </div>
-                    </div>
-
-                    {/* CTA */}
-                    <div className="bg-gradient-to-r from-[#5a0000] via-[#c00000] to-[#5a0000] mt-3 md:mt-4 rounded-md p-3 md:p-4 flex items-center justify-center gap-3 md:gap-4 z-20 border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.4)]">
-                        <div className="bg-white rounded-full p-1.5 md:p-2 shadow-[0_0_15px_white]">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="#25D366" className="w-8 h-8 md:w-10 md:h-10"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xl md:text-4xl font-black text-white tracking-tighter leading-none drop-shadow-md">¡CONSULTANOS AHORA!</p>
-                            <p className="text-[9px] md:text-sm text-red-300 font-bold tracking-widest mt-0.5 md:mt-1">TE ASESORAMOS Y RESERVÁS TU {vehicleData.model}</p>
-                        </div>
-                    </div>
-
-                    {/* Footer mini */}
-                    <div className="flex justify-between items-center z-20 mt-3 md:mt-4 px-2">
-                         <div className="flex items-center gap-1.5">
-                            <span className="text-gray-400 text-sm md:text-base">⚡</span>
-                            <div>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">ENTREGA RÁPIDA</p>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">DE 7 A 15 DÍAS</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-1.5">
-                            <span className="text-red-600 text-sm md:text-base drop-shadow-[0_0_2px_red]">★</span>
-                            <div>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">STOCK DISPONIBLE</p>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">UNIDADES LISTAS</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-1.5">
-                            <Check size={12} className="text-gray-400 md:w-4 md:h-4" strokeWidth={3} />
-                            <div>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">RESPALDO OFICIAL</p>
-                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">{vehicleData.brand}</p>
-                            </div>
-                         </div>
-                    </div>
-                </div>
-              </div>
-            )}
-
-            {/* TEMA: SPORT */}
-            {activeTheme.id === 'sport' && (
-              <div className="flex flex-col h-full relative">
-                {/* Decoración en ángulo */}
-                <div className="absolute top-0 right-0 w-2/3 h-full bg-black -skew-x-12 translate-x-1/4 origin-bottom shadow-2xl z-0"></div>
+            // Lógica para renderizar la imagen HD y descargarla
+            const exportFlyer = () => {
+                if (!flyerRef.current) return;
+                setIsExporting(true);
                 
-                <div className="relative z-10 flex flex-col h-full p-8">
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-auto">
-                        <img src={logoImage} alt="Logo" className="h-10 object-contain bg-white/10 p-1 rounded backdrop-blur-sm" />
-                        <div className="text-right">
-                            <span className="bg-white text-red-900 px-3 py-1 text-sm uppercase tracking-black font-black italic">Stock Limitado</span>
-                        </div>
-                    </div>
+                setTimeout(() => {
+                    html2canvas(flyerRef.current, {
+                        scale: 2.5, // Duplica la resolución para excelente calidad en WhatsApp/Redes
+                        useCORS: true,
+                        backgroundColor: "#0a0a0a"
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `Flyer_${brand}_${model}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        setIsExporting(false);
+                    }).catch(err => {
+                        console.error("Error al generar imagen:", err);
+                        setIsExporting(false);
+                    });
+                }, 100);
+            };
 
-                    {/* Contenido Central */}
-                    <div className="mt-8 mb-4">
-                        <h2 className="text-3xl text-red-200 uppercase tracking-tighter">{vehicleData.brand}</h2>
-                        <h1 className="text-6xl font-black uppercase tracking-tighter leading-none">{vehicleData.model}</h1>
-                    </div>
-
-                    {/* Imagen Principal (Desplazada) */}
-                    <div className="relative h-64 w-full -mr-12 self-end shadow-2xl">
-                        <img src={carImage} alt="Vehículo" className="w-full h-full object-cover border-4 border-white shadow-[20px_20px_0px_rgba(0,0,0,0.5)]" />
-                    </div>
-
-                    {/* Footer Datos */}
-                    <div className="mt-auto grid grid-cols-3 gap-2 bg-black/50 p-4 rounded-lg backdrop-blur-md border-l-4 border-red-500">
-                        <div className="col-span-2">
-                             <p className="text-4xl font-black text-white">{vehicleData.price}</p>
-                             <p className="text-sm text-gray-300">{vehicleData.features}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                             <p className="bg-red-600 px-2 py-1 text-sm inline-block">{vehicleData.year}</p>
-                             <p className="bg-gray-800 px-2 py-1 text-sm inline-block">{vehicleData.mileage}</p>
-                        </div>
-                    </div>
-                     <div className="mt-4 text-center text-sm font-bold opacity-80">
-                        {vehicleData.contact}
-                    </div>
-                </div>
-              </div>
-            )}
-
-            {/* TEMA: MODERN (Minimalista) */}
-            {activeTheme.id === 'modern' && (
-              <div className="flex flex-col h-full">
-                {/* Imagen arriba ocupando 60% */}
-                <div className="h-[60%] w-full relative">
-                    <img src={carImage} alt="Vehículo" className="w-full h-full object-cover" />
-                    {/* Overlay degradado ligero */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent"></div>
-                    <img src={logoImage} alt="Logo" className="absolute top-6 left-6 h-8 object-contain bg-white/90 p-1.5 rounded shadow-sm" />
+            return (
+                <div class="flex flex-col lg:flex-row min-h-screen">
                     
-                    {/* Badge de año/km */}
-                    <div className="absolute bottom-0 right-0 bg-white px-6 py-3 rounded-tl-2xl shadow-lg flex gap-4">
-                         <span className="font-semibold text-gray-800">{vehicleData.year}</span>
-                         <span className="text-gray-400">|</span>
-                         <span className="font-semibold text-gray-800">{vehicleData.mileage}</span>
+                    {/* PANEL DE CONTROL (Izquierda) */}
+                    <div class="w-full lg:w-1/3 bg-neutral-900 p-6 overflow-y-auto max-h-screen no-scrollbar">
+                        <div class="mb-6">
+                            <h1 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-red-600 animate-pulse"></span>
+                                GENERADOR DE FLYERS
+                            </h1>
+                        </div>
+
+                        {/* CARGA DE FOTOS */}
+                        <div class="bg-black/40 border border-zinc-800 rounded-xl p-4 mb-5">
+                            <h2 class="text-sm font-bold text-red-500 uppercase mb-3">Foto del Vehículo (PNG recomendado)</h2>
+                            <label class="w-full bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg cursor-pointer transition text-center border border-zinc-700 block">
+                                📸 Seleccionar Foto Local
+                                <input type="file" accept="image/*" onChange={handleImageUpload} class="hidden" />
+                            </label>
+                            <button class="w-full mt-2 bg-blue-600/20 text-blue-400 text-xs font-bold py-2.5 px-4 rounded-lg border border-blue-500/30">
+                                🤖 Integración Drive (Ver Archivo)
+                            </button>
+                        </div>
+
+                        {/* FORMULARIOS DE TEXTO */}
+                        <div class="space-y-4 bg-black/20 p-2 rounded-xl">
+                            <h2 class="text-xs font-bold text-zinc-400 uppercase">Textos Principales</h2>
+                            <input type="text" value={topText} onChange={(e) => setTopText(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-white" />
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-white font-bold" />
+                                <input type="text" value={model} onChange={(e) => setModel(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-red-500 font-bold" />
+                            </div>
+                            <input type="text" value={deliveryDays} onChange={(e) => setDeliveryDays(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-sm text-white" />
+                            
+                            {/* Subtítulos */}
+                            <h2 class="text-xs font-bold text-zinc-400 uppercase pt-3">Descripción</h2>
+                            <input type="text" value={middleText1} onChange={(e) => setMiddleText1(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white" />
+                            <input type="text" value={middleText2} onChange={(e) => setMiddleText2(e.target.value)} class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-white" />
+                        </div>
+
+                        <div class="mt-8">
+                            <button onClick={exportFlyer} disabled={isExporting} class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl shadow-lg border border-red-400 transition">
+                                {isExporting ? "Generando Imagen HD..." : "🚀 DESCARGAR FLYER"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* CANVAS DE DISEÑO - TEMÁTICA ELEGANCIA PREMIUM (Derecha) */}
+                    <div class="w-full lg:w-2/3 bg-neutral-950 flex items-center justify-center p-8">
+                        <div ref={flyerRef} class="relative bg-[#0a0a0a] overflow-hidden select-none border border-zinc-900" style={{ width: '500px', height: '625px', minWidth: '500px', minHeight: '625px' }}>
+                            
+                            {/* Luces y Neones de fondo */}
+                            <div class="absolute top-[-50px] left-[-50px] w-72 h-72 bg-red-600/10 rounded-full blur-[80px]"></div>
+                            <div class="absolute top-[120px] right-[-50px] w-64 h-64 bg-red-600/10 rounded-full blur-[70px]"></div>
+                            
+                            {/* Logos Superiores */}
+                            <div class="absolute top-4 left-5 z-20 flex items-center justify-center w-14 h-14 bg-black/90 rounded-full border-2 border-red-600 border-neon-red">
+                                <span class="text-red-600 font-black text-2xl italic">G</span>
+                            </div>
+                            <div class="absolute top-5 right-5 z-20 w-12 h-12 rounded-full border border-blue-500/40 bg-black/70 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                                <span class="text-blue-400 font-black text-xl italic">VW</span>
+                            </div>
+
+                            {/* Badge Entrega Rápida */}
+                            <div class="absolute top-24 left-5 z-20 flex items-center gap-2 bg-black/70 border border-red-600/40 px-2.5 py-1 rounded-lg backdrop-blur-xs">
+                                <div class="text-left leading-none">
+                                    <div class="text-[9px] font-black text-red-500 uppercase">ENTREGA</div>
+                                    <div class="text-[10px] font-black text-white uppercase">RÁPIDA</div>
+                                </div>
+                            </div>
+
+                            {/* Textos Principales y Títulos */}
+                            <div class="absolute top-4 left-0 right-0 z-10 text-center pt-2 px-16">
+                                <p class="text-white text-[10px] font-bold tracking-[0.25em] uppercase">{topText}</p>
+                                <h2 class="text-white text-4xl font-black italic tracking-tighter uppercase">{brand}</h2>
+                                <h3 class="text-5xl font-black italic tracking-tighter uppercase text-zinc-300 drop-shadow-md">{model}</h3>
+                                <div class="inline-block bg-red-600 text-white font-black italic text-[11px] px-5 py-0.5 mt-2 transform -skew-x-12">{deliveryDays}</div>
+                            </div>
+
+                            {/* Auto Central */}
+                            <div class="absolute top-[145px] left-0 right-0 h-[240px] z-10 flex items-center justify-center">
+                                <img src={carImage} class="max-w-[95%] max-h-[90%] object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(0,0,0,0.75)]"/>
+                            </div>
+
+                            {/* Eslogans */}
+                            <div class="absolute bottom-[198px] left-0 right-0 z-20 text-center px-6">
+                                <p class="text-zinc-300 text-[10px] font-bold italic uppercase">{middleText1}</p>
+                                <p class="text-white text-[16px] font-black italic uppercase mt-0.5">SUBITE A MÁS <span class="text-red-600 text-neon-red">{model}</span>.</p>
+                            </div>
+
+                            {/* Grilla 3 Opciones (Finanzas, Llaves, Planes) */}
+                            <div class="absolute bottom-[108px] left-0 right-0 z-20 px-4">
+                                <div class="grid grid-cols-3 gap-2 text-center">
+                                    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2 min-h-[66px]">
+                                        <div class="text-red-500 font-bold text-lg mb-1">$</div>
+                                        <div class="text-[8.5px] text-white font-bold">{feature1Title}</div>
+                                        <div class="text-[10px] text-red-500 font-black">{feature1Bold}</div>
+                                    </div>
+                                    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2 min-h-[66px]">
+                                        <div class="text-red-500 font-bold text-lg mb-1">🔑</div>
+                                        <div class="text-[8.5px] text-white font-bold">{feature2Title}</div>
+                                        <div class="text-[10px] text-red-500 font-black">{feature2Bold}</div>
+                                    </div>
+                                    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2 min-h-[66px]">
+                                        <div class="text-red-500 font-bold text-lg mb-1">🛡️</div>
+                                        <div class="text-[8.5px] text-white font-bold">{feature3Title}</div>
+                                        <div class="text-[10px] text-red-500 font-black">{feature3Bold}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stock Box Inferior */}
+                            <div class="absolute bottom-[54px] left-0 right-0 z-20 border-t border-zinc-800 bg-zinc-950 px-4 py-1.5 flex justify-between">
+                                <div class="text-[9px] font-black text-white">{stockMain}</div>
+                                <div class="text-[8.5px] font-black text-zinc-400">{stockQuery}</div>
+                            </div>
+
+                            {/* WhatsApp Footer */}
+                            <div class="absolute bottom-0 left-0 right-0 z-20">
+                                <div class="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-t border-red-600/30 py-2.5 text-center">
+                                    <h4 class="text-white text-xl font-black italic uppercase">💬 {ctaText}</h4>
+                                </div>
+                                <div class="bg-red-700 text-center py-1 text-[9px] font-black text-white uppercase">{ctaSub}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            );
+        }
 
-                {/* Textos abajo */}
-                <div className="flex-1 p-8 bg-white flex flex-col justify-between">
-                    <div>
-                        <p className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-1">{vehicleData.brand}</p>
-                        <h1 className="text-4xl font-light text-gray-900 mb-2">{vehicleData.model}</h1>
-                        <p className="text-gray-500 text-sm">{vehicleData.features}</p>
-                    </div>
-
-                    <div className="flex items-end justify-between border-t border-gray-100 pt-6">
-                        <div>
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Precio Final</p>
-                            <p className="text-3xl font-semibold text-gray-900">{vehicleData.price}</p>
-                        </div>
-                        <div className="text-right">
-                             <div className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium">
-                                Contactar Ahora
-                             </div>
-                             <p className="text-xs text-gray-500 mt-2">{vehicleData.contact}</p>
-                        </div>
-                    </div>
-                </div>
-              </div>
-            )}
-            
-          </div>
-        </div>
-        
-        <p className="text-gray-500 text-sm mt-6 flex items-center gap-2">
-            Vista previa en vivo (Proporción 4:5 Vertical)
-        </p>
-
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<FlyerGenerator />);
+    </script>
+</body>
+</html>
