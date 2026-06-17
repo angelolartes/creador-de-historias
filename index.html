@@ -1,598 +1,549 @@
-<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <!-- PWA / Comportamiento de Aplicación Móvil -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0b1329">
-    
-    <title>Creador de Historias App - Nico Refrigeración</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Librería para renderizado y descarga de imágenes de alta calidad -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ice: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #0b1329;
-            color: #f1f5f9;
-        }
-        
-        /* Ajuste estricto de aspecto 9:16 para la historia de Instagram */
-        .story-canvas {
-            width: 340px;
-            height: 604px;
-            transition: all 0.3s ease-in-out;
-        }
+import React, { useState, useRef } from 'react';
+import { Download, Image as ImageIcon, Upload, Palette, Car, DollarSign, Calendar, Type, Check, Shield } from 'lucide-react';
 
-        /* Degradados Premium para los fondos de historias */
-        .bg-gradient-glaciar {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #bae6fd 100%);
-        }
-        .bg-gradient-darkice {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-        }
-        .bg-gradient-electric {
-            background: linear-gradient(135deg, #075985 0%, #0369a1 40%, #0284c7 100%);
-        }
+// Definimos los 3 temas visuales disponibles
+const THEMES = {
+  PREMIUM: {
+    id: 'premium',
+    name: 'Elegancia Premium',
+    background: 'bg-gradient-to-br from-gray-900 to-black',
+    textColor: 'text-white',
+    accentColor: 'text-amber-400',
+    borderColor: 'border-amber-400',
+    font: 'font-serif',
+    layout: 'classic' // Layout tipo revista
+  },
+  SPORT: {
+    id: 'sport',
+    name: 'Deportivo Agresivo',
+    background: 'bg-gradient-to-br from-red-700 via-red-900 to-black',
+    textColor: 'text-white',
+    accentColor: 'text-red-400',
+    borderColor: 'border-red-500',
+    font: 'font-sans font-bold italic',
+    layout: 'angled' // Layout con ángulos y dinamismo
+  },
+  MODERN: {
+    id: 'modern',
+    name: 'Moderno Minimalista',
+    background: 'bg-slate-50',
+    textColor: 'text-slate-900',
+    accentColor: 'text-blue-600',
+    borderColor: 'border-blue-600',
+    font: 'font-sans font-light',
+    layout: 'clean' // Layout limpio y centrado
+  }
+};
 
-        @keyframes bounce-subtle {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        .animate-bounce-subtle {
-            animation: bounce-subtle 2s ease-in-out infinite;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-8 bg-slate-950 relative selection:bg-ice-500 selection:text-white">
+// Datos iniciales por defecto del vehículo
+const INITIAL_VEHICLE_DATA = {
+  brand: 'MARCA',
+  model: 'MODELO VERSIÓN',
+  year: '2024',
+  mileage: '0 km',
+  price: '$0.000.000',
+  features: 'Transmisión Automática • Asientos de Cuero • Pantalla Táctil',
+  contact: 'Tel: 123-456-7890 | @tuconcesionaria'
+};
 
-     <!-- CABECERA DE LA APP -->
-    <header id="main-header" class="w-full max-w-6xl text-center mb-8 transition-opacity duration-300">
-        <div class="inline-flex items-center space-x-2 bg-ice-500/10 border border-ice-500/30 px-4 py-1.5 rounded-full text-ice-400 text-xs font-bold uppercase tracking-wider mb-3">
-            <span>✨ DISEÑADOR DE PUBLICACIONES INSTAGRAM</span>
+export default function AutoFlyerCreator() {
+  const [activeTheme, setActiveTheme] = useState(THEMES.MODERN);
+  const [vehicleData, setVehicleData] = useState(INITIAL_VEHICLE_DATA);
+  const [carImage, setCarImage] = useState('https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=1000');
+  const [logoImage, setLogoImage] = useState('https://via.placeholder.com/150x50/e2e8f0/475569?text=TU+LOGO');
+  const [isExporting, setIsExporting] = useState(false);
+  const flyerRef = useRef(null);
+
+  // Función para manejar cambios en los campos de texto
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setVehicleData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Simulación de carga desde Google Drive
+  // NOTA PARA EL USUARIO: En un entorno real, aquí se integraría Google Picker API.
+  // Requiere configuración en Google Cloud Console (Client ID, API Key).
+  const handleGoogleDriveSelect = () => {
+    alert("Simulación: Abriendo Google Picker...\n\nEn un entorno de producción, esta acción abriría una ventana emergente conectada a tu Google Drive para seleccionar imágenes directamente de una carpeta específica.");
+    
+    // Simulamos la selección de una nueva imagen después de 'usar' Google Drive
+    setTimeout(() => {
+        setCarImage('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=1000'); // Un BMW de ejemplo
+    }, 1000);
+  };
+
+  // Función para carga de archivos locales (alternativa a Drive)
+  const handleLocalImageUpload = (e, setImageTarget) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageTarget(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Función para exportar el flyer como imagen
+  const exportFlyer = async () => {
+    setIsExporting(true);
+    
+    try {
+      // Como no podemos usar la librería externa html2canvas directamente aquí sin imports complejos,
+      // simulamos el proceso de descarga creando un canvas básico y descargándolo.
+      // En un proyecto real, se instalaría 'html2canvas' y se usaría:
+      // const canvas = await html2canvas(flyerRef.current);
+      // Simulamos el proceso de descarga creando un canvas básico y descargándolo.
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1350; // Ajustado a formato vertical 4:5 para este diseño
+      const ctx = canvas.getContext('2d');
+      
+      // Dibujamos un fondo simple para la simulación
+      ctx.fillStyle = activeTheme.id === 'modern' ? '#f8fafc' : (activeTheme.id === 'premium' ? '#111827' : '#7f1d1d');
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = activeTheme.textColor === 'text-white' ? '#ffffff' : '#0f172a';
+      ctx.font = '48px sans-serif';
+      ctx.fillText(`${vehicleData.brand} ${vehicleData.model}`, 50, 100);
+      ctx.fillText(`Simulación de Exportación - Instala html2canvas`, 50, 200);
+
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Flyer_${vehicleData.brand}_${vehicleData.model}.png`;
+      link.click();
+    } catch (error) {
+      console.error("Error al exportar:", error);
+      alert("Hubo un error al generar la imagen.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
+      {/* Panel Izquierdo: Controles */}
+      <div className="w-1/3 min-w-[350px] bg-white border-r border-gray-200 flex flex-col h-full shadow-lg z-10">
+        <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+          <Palette className="text-blue-600" />
+          <h1 className="text-xl font-bold text-gray-800">Creador de Flyers</h1>
         </div>
-        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-            Creador de Historias <span class="bg-gradient-to-r from-ice-400 to-blue-500 bg-clip-text text-transparent">Nico Refrigeración</span>
-        </h1>
-        <p class="text-slate-400 text-sm md:text-base mt-2">
-            Ajustá los textos, subí tu logo o foto, controlá el tamaño y descargá la imagen perfecta.
-        </p>
-    </header>
-    
-    <!-- CONTAINER PRINCIPAL -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16 relative">
-        
-        <!-- PANEL DE CONTROL (Izquierda) -->
-        <section id="control-panel" class="lg:col-span-5 bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-6 transition-all duration-300 shadow-2xl">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    ⚙️ Ajustar Textos y Diseño
-                </h2>
-                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 font-extrabold px-2.5 py-1 rounded-full">Web App Activa</span>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          
+          {/* SECCIÓN 1: Temáticas */}
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+               <Palette size={16} /> 1. Elige una Temática
+            </h2>
+            <div className="grid grid-cols-1 gap-3">
+              {Object.values(THEMES).map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => setActiveTheme(theme)}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${
+                    activeTheme.id === theme.id 
+                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  <span className="font-medium text-gray-800 block">{theme.name}</span>
+                  <span className="text-xs text-gray-500">{theme.id === 'premium' ? 'Oscuro y elegante' : theme.id === 'sport' ? 'Rojo dinámico' : 'Claro y limpio'}</span>
+                </button>
+              ))}
             </div>
-            <hr class="border-slate-800">
+          </section>
 
-            <!-- Presets Rápidos -->
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">💡 Carga de Plantillas Rápidas</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="loadPreset('climatizacion')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-1 rounded-xl text-[11px] font-bold transition border border-white/5">❄️ Aires</button>
-                    <button onclick="loadPreset('heladeras')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-1 rounded-xl text-[11px] font-bold transition border border-white/5">🧊 Heladeras</button>
-                    <button onclick="loadPreset('lavarropas')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-1 rounded-xl text-[11px] font-bold transition border border-white/5">⚙️ Lavarropas</button>
-                </div>
-            </div>
+          <hr className="border-gray-100" />
 
-            <div class="space-y-4">
-                <!-- Título -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Título de la Historia</label>
-                    <input type="text" id="input-title" value="¿Problemas con tu Climatización?" 
-                           class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 text-sm focus:border-ice-500 focus:outline-none transition"
-                           oninput="updateStory()">
-                </div>
-
-                <!-- Subtítulo -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mensaje de Confianza</label>
-                    <input type="text" id="input-subtitle" value="Reparación y mantenimiento profesional con Garantía Escrita." 
-                           class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-4 py-3 text-sm focus:border-ice-500 focus:outline-none transition"
-                           oninput="updateStory()">
-                </div>
-
-                <!-- Servicios -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Servicios Clave</label>
-                    <div class="space-y-2">
-                        <input type="text" id="input-srv1" value="Aires Acondicionados (Split/Centrales)" class="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-xl px-4 py-2 text-xs focus:border-ice-500 focus:outline-none" oninput="updateStory()">
-                        <input type="text" id="input-srv2" value="Heladeras y Freezers (No Frost)" class="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-xl px-4 py-2 text-xs focus:border-ice-500 focus:outline-none" oninput="updateStory()">
-                        <input type="text" id="input-srv3" value="Lavarropas Automáticos" class="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-xl px-4 py-2 text-xs focus:border-ice-500 focus:outline-none" oninput="updateStory()">
-                    </div>
-                </div>
-
-                <!-- Subir Logo Personalizado -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🖼️ Tu Logo / Imagen Comercial</label>
-                    <div class="flex items-center space-x-3 mb-3">
-                        <label class="flex-1 flex flex-col items-center justify-center bg-slate-950 border border-dashed border-slate-800 rounded-xl py-3 px-4 cursor-pointer hover:border-ice-500 hover:bg-slate-900/50 transition">
-                            <span class="text-xs text-slate-400 font-medium">Subir Imagen Personalizada</span>
-                            <input type="file" id="input-logo" accept="image/*" class="hidden" onchange="loadCustomLogo(event)">
-                        </label>
-                        <button onclick="resetLogo()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-3 rounded-xl text-xs font-bold transition">
-                            Restaurar
-                        </button>
-                    </div>
-                    
-                    <!-- Control Dinámico de Tamaño del Logo -->
-                    <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/50">
-                        <label class="flex justify-between text-[11px] font-bold text-slate-400 uppercase mb-1.5">
-                            <span>📏 Tamaño del Logo</span>
-                            <span id="logo-size-value" class="text-ice-400 font-black">56px</span>
-                        </label>
-                        <input type="range" id="input-logo-size" min="30" max="100" value="56" 
-                               class="w-full accent-ice-500 bg-slate-900 h-1.5 rounded-lg cursor-pointer"
-                               oninput="updateStory()">
-                    </div>
-                </div>
-
-                <!-- Selector de Fondo -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Fondo de la Historia</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="changeBackground('glaciar')" class="bg-ice-100 hover:bg-ice-200 text-ice-900 font-bold py-2 px-3 rounded-xl text-xs transition border border-white/20">❄️ Glaciar</button>
-                        <button onclick="changeBackground('darkice')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3 rounded-xl text-xs transition border border-white/10">🌙 Oscuro</button>
-                        <button onclick="changeBackground('electric')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition border border-white/10">⚡ Azul</button>
-                    </div>
-                </div>
-
-                <!-- Controladores del Sticker Virtual -->
-                <div class="pt-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sticker de Enlace Virtual (Instagram)</label>
-                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-300">Mostrar Sticker de Enlace</span>
-                            <button id="btn-sticker-toggle" onclick="toggleSticker()" class="relative inline-flex h-6 w-11 items-center rounded-full bg-ice-600 transition-colors">
-                                <span id="toggle-dot" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
-                            </button>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Texto del Link</label>
-                            <input type="text" id="input-sticker" value="RESERVAR TURNO 📲" 
-                                   class="w-full bg-slate-900 border border-slate-800 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none"
-                                   oninput="updateStory()">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones de captura -->
-<div class="bg-ice-950/20 border border-ice-800/40 p-4 rounded-2xl text-xs text-ice-300 space-y-2">
-    <p class="font-bold">📸 Pasos para armar tu historia:</p>
-    <p>1. Ajustá el texto, colores, logo y fondo a tu gusto.</p>
-    <p>2. Activá el <strong>"Modo Captura"</strong> para una imagen limpia, o simplemente presioná el botón de <strong>Descargar Imagen</strong>.</p>
-    <p>3. Subí tu captura a Instagram y colocá el Sticker de tipo "Enlace" sobre el recuadro punteado.</p>
-</div>
-
-        <!-- CONTENEDOR DEL CELULAR (Derecha) -->
-        <section id="preview-section" class="lg:col-span-7 flex flex-col items-center justify-center transition-all duration-500">
+          {/* SECCIÓN 2: Imágenes (Integración Drive) */}
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+               <ImageIcon size={16} /> 2. Fotos del Vehículo
+            </h2>
             
-            <!-- Controles rápidos flotantes -->
-            <div id="quick-controls" class="flex flex-wrap gap-2 mb-4 justify-center">
-                <button onclick="downloadStoryImage()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl text-xs font-black flex items-center gap-2 shadow-lg shadow-emerald-950/20 transition transform hover:-translate-y-0.5 active:translate-y-0">
-                    📥 Descargar Imagen de Alta Calidad
-                </button>
-                <button onclick="toggleCaptureMode()" class="bg-slate-900 border border-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white px-5 py-3 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-[1.02] active:scale-95">
-    👁️ Ver Modo Captura
-</button>
-                <button onclick="toggleSticker()" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 px-5 py-3 rounded-2xl text-xs font-bold transition">
-                    🔗 Alternar Sticker
-                </button>
+            <div className="space-y-4">
+              {/* Botón Principal: Conectar a Drive */}
+              <button 
+                onClick={handleGoogleDriveSelect}
+                className="w-full flex items-center justify-center gap-2 bg-[#4285F4] hover:bg-[#3367D6] text-white py-3 px-4 rounded-lg font-medium transition-colors shadow-sm"
+              >
+                {/* SVG Logo de Google Drive simplificado */}
+                <svg className="w-5 h-5" viewBox="0 0 87.3 127.3" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M63.3 56l-22.1-38.3h-28.5l22.1 38.3h28.5z" fill="#0066da"/>
+                  <path d="M22.1 38.3l-22.1 38.3 14.3 24.6 22.1-38.3-14.3-24.6z" fill="#00ac47"/>
+                  <path d="M41.2 17.7l-14.3 24.6h57.1l14.3-24.6h-57.1z" fill="#ea4335"/>
+                  <path d="M41.2 94.3h57.1l-14.3-24.6h-57.1l14.3 24.6z" fill="#00832d"/>
+                  <path d="M84 70l-22.1-38.3-14.3 24.6 22.1 38.3 14.3-24.6z" fill="#2684fc"/>
+                  <path d="M41.2 94.3l-22.1-38.3-14.3 24.6 22.1 38.3 14.3-24.6z" fill="#ffba00"/>
+                </svg>
+                Seleccionar desde Google Drive
+              </button>
+
+              <div className="text-center text-sm text-gray-400 font-medium">O</div>
+
+              {/* Opción secundaria: Subida local */}
+              <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors text-center cursor-pointer">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => handleLocalImageUpload(e, setCarImage)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                <span className="text-sm text-gray-600 font-medium">Subir foto desde este equipo</span>
+              </div>
             </div>
 
-            <!-- Cuerpo externo del Smartphone simulado -->
-            <div id="phone-case" class="relative w-full max-w-[370px] bg-slate-900 rounded-[3.2rem] p-3.5 shadow-[0_0_50px_rgba(14,165,233,0.15)] border-4 border-slate-800 transition-all duration-300">
-                
-                <!-- PANTALLA INTERNA DE LA HISTORIA (9:16 Estricto y Rediseñado para dar aire) -->
-                <div id="story-viewport" class="relative story-canvas bg-gradient-glaciar rounded-[2.8rem] overflow-hidden flex flex-col justify-between p-6 select-none relative transition-all duration-300">
-                    
-                    <!-- Decoraciones sutiles de fondo (Copos de Nieve) -->
-                    <div id="deco-flakes" class="absolute inset-0 opacity-[0.06] pointer-events-none text-3xl flex flex-wrap justify-around content-around p-4 transition-all duration-300">
-                        <div>❄️</div><div>❄️</div><div>❄️</div><div>❄️</div>
-                        <div>❄️</div><div>❄️</div><div>❄️</div><div>❄️</div>
-                    </div>
+            {/* Logo de la empresa */}
+             <div className="mt-6">
+                <label className="block text-xs font-medium text-gray-600 mb-2">Logo de la Concesionaria</label>
+                <div className="relative border border-gray-300 rounded-md p-2 hover:bg-gray-50 flex items-center justify-between cursor-pointer">
+                    <img src={logoImage} alt="Logo actual" className="h-8 max-w-[100px] object-contain bg-gray-200 rounded" />
+                     <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleLocalImageUpload(e, setLogoImage)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <span className="text-xs text-blue-600 font-medium px-2">Cambiar</span>
+                </div>
+            </div>
+          </section>
 
-                    <!-- 1. Cabecera (Logo Dinámico y Badge) -->
-                    <div class="flex flex-col items-center w-full mt-4 z-10 text-center">
-                        <div class="relative mb-2">
-                            <div class="absolute -inset-1 rounded-full bg-sky-400/20 blur-md"></div>
-                            <img id="view-logo" src="https://i.postimg.cc/sMkkxjXs/logo-nico.jpg" alt="Logo" class="logo-preview-img relative rounded-xl object-cover border-2 border-white shadow-lg" style="width: 56px; height: 56px;">
+          <hr className="border-gray-100" />
+
+          {/* SECCIÓN 3: Datos del Vehículo */}
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+               <Type size={16} /> 3. Datos del Vehículo
+            </h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><Car size={12}/> Marca</label>
+                  <input type="text" name="brand" value={vehicleData.brand} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Modelo</label>
+                  <input type="text" name="model" value={vehicleData.model} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><DollarSign size={12}/> Precio</label>
+                  <input type="text" name="price" value={vehicleData.price} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none font-bold text-green-700" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1"><Calendar size={12}/> Año</label>
+                        <input type="text" name="year" value={vehicleData.year} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                     <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Km</label>
+                        <input type="text" name="mileage" value={vehicleData.mileage} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Características (separadas por •)</label>
+                <input type="text" name="features" value={vehicleData.features} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Contacto / Redes</label>
+                <input type="text" name="contact" value={vehicleData.contact} onChange={handleInputChange} className="w-full p-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Botón de Exportar (Fijo al fondo) */}
+        <div className="p-4 bg-white border-t border-gray-200">
+           <button 
+            onClick={exportFlyer}
+            disabled={isExporting}
+            className={`w-full py-3 px-4 rounded-lg font-bold text-white flex items-center justify-center gap-2 transition-all shadow-md
+              ${isExporting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'}`}
+          >
+            <Download size={20} />
+            {isExporting ? 'Generando imagen...' : 'Descargar Flyer (1080x1080)'}
+          </button>
+        </div>
+      </div>
+
+      {/* Panel Derecho: Previsualización (Canvas) */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-200 overflow-y-auto pattern-dots">
+        
+        {/* Contenedor con aspecto 4:5 (Vertical ideal para Flyers) */}
+        <div className="relative shadow-2xl transition-all duration-500" style={{ width: '100%', maxWidth: '600px', aspectRatio: '4/5' }}>
+          
+          {/* ELEMENTO A EXPORTAR (Referenciado para html2canvas) */}
+          <div 
+            ref={flyerRef}
+            className={`absolute inset-0 overflow-hidden ${activeTheme.background} ${activeTheme.textColor} ${activeTheme.font}`}
+            style={{ width: '100%', height: '100%' }} // Asegurar dimensiones
+          >
+            {/* --- RENDERIZADO CONDICIONAL SEGÚN EL TEMA --- */}
+
+            {/* TEMA: PREMIUM */}
+            {activeTheme.id === 'premium' && (
+              <div className="flex flex-col h-full bg-[#0a0a0a] text-white relative overflow-hidden font-sans italic">
+                {/* Background lines & glows to match the "Dynamic/Sport" neon vibe of the image */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                     <div className="absolute top-0 right-0 w-full h-1/2 bg-gradient-to-b from-red-900/20 to-transparent"></div>
+                     <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-red-600/20 blur-[100px] rounded-full"></div>
+                     <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-red-600/15 blur-[100px] rounded-full"></div>
+                     <div className="absolute top-1/3 left-0 w-full h-0.5 bg-red-500/30 shadow-[0_0_15px_red] transform -rotate-12"></div>
+                     <div className="absolute bottom-1/3 left-0 w-full h-0.5 bg-red-500/30 shadow-[0_0_15px_red] transform rotate-6"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col h-full p-4 md:p-6 justify-between">
+                    {/* Header */}
+                    <div className="flex justify-between items-start">
+                        {/* Logo AG */}
+                        <div className="relative">
+                            <img src={logoImage} alt="Logo" className="h-16 md:h-24 w-16 md:w-24 object-contain drop-shadow-2xl z-10 relative" />
+                            <div className="absolute inset-0 bg-red-600/30 blur-xl rounded-full"></div>
                         </div>
-                        <span id="badge-matriculado" class="text-[8px] font-black tracking-[0.25em] text-sky-800 uppercase bg-white/70 px-3 py-1 rounded-full border border-white/80 transition-colors">
-                            Servicio Técnico Matriculado
-                        </span>
-                    </div>
-
-                    <!-- 2. Mensaje Principal y Tarjeta Glaciar de Servicios -->
-                    <div class="w-full text-center my-auto px-2 z-10 space-y-4">
-                        <h1 id="view-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight tracking-tight transition-colors">
-                            ¿Problemas con tu <br>
-                            <span class="bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Climatización?</span>
-                        </h1>
                         
-                        <p id="view-subtitle" class="text-xs text-slate-600 font-light max-w-[240px] mx-auto leading-relaxed transition-colors">
-                            Reparación y mantenimiento profesional con <span class="font-semibold text-slate-800">Garantía Escrita</span>.
-                        </p>
+                        <div className="text-right">
+                            <p className="text-sm md:text-lg font-bold tracking-widest text-gray-200">RETIRÁ TU PRÓXIMO</p>
+                            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white drop-shadow-lg leading-none mt-1">{vehicleData.brand}</h2>
+                            <h1 className="text-6xl md:text-[5.5rem] font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-gray-100 to-gray-500 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] leading-none -mt-1 md:-mt-2">{vehicleData.model}</h1>
+                        </div>
+                    </div>
 
-                        <!-- Contenedor translúcido de los servicios -->
-                        <div id="services-box" class="bg-white/50 backdrop-blur-md border border-white/60 rounded-[1.8rem] p-4 shadow-lg shadow-sky-900/5 space-y-2 text-left max-w-[270px] mx-auto transition-all">
-                            <div class="flex items-center space-x-2 text-[10px] sm:text-xs font-semibold text-slate-800">
-                                <span class="bg-sky-100/80 p-1.5 rounded-lg text-xs">❄️</span>
-                                <span id="view-srv1">Aires Acondicionados (Split/Centrales)</span>
+                    {/* Delivery & Badges */}
+                    <div className="absolute top-28 md:top-36 left-4 md:left-6 flex flex-col items-center">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.8)] bg-black/80 relative">
+                            <Calendar className="text-white w-8 h-8 md:w-10 md:h-10" />
+                            <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full p-0.5 border-2 border-black">
+                                 <Check size={14} className="text-white font-bold"/>
                             </div>
-                            <div class="flex items-center space-x-2 text-[10px] sm:text-xs font-semibold text-slate-800">
-                                <span class="bg-sky-100/80 p-1.5 rounded-lg text-xs">🧊</span>
-                                <span id="view-srv2">Heladeras y Freezers (No Frost)</span>
+                        </div>
+                        <div className="text-center mt-2">
+                            <p className="text-xs md:text-sm font-bold text-white leading-tight">ENTREGA</p>
+                            <p className="text-sm md:text-base font-black text-red-500 leading-tight">RÁPIDA</p>
+                            <p className="text-[9px] md:text-[11px] font-sans not-italic text-gray-300 mt-1 font-bold">DE 7 A 15 DÍAS</p>
+                        </div>
+                    </div>
+
+                    <div className="absolute top-36 md:top-48 right-0 text-right w-1/2 flex flex-col items-end">
+                        <div className="bg-red-600 px-6 md:px-10 py-1 shadow-[0_0_15px_rgba(220,38,38,0.6)] -skew-x-12 mr-4 md:mr-8 mb-6 md:mb-10">
+                            <span className="block skew-x-12 text-white font-black text-base md:text-2xl tracking-wider">DE 7 A 15 DÍAS</span>
+                        </div>
+                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.6)] bg-black/80 mr-4 md:mr-8">
+                             <span className="text-blue-100 font-bold text-2xl md:text-4xl not-italic">W</span>
+                        </div>
+                    </div>
+
+                    {/* Car Image (Center focus) */}
+                    <div className="flex-1 relative flex items-center justify-center mt-12 mb-6">
+                        <img src={carImage} alt="Vehículo" className="w-[130%] max-w-[130%] md:w-[120%] md:max-w-[120%] object-contain drop-shadow-[0_30px_30px_rgba(0,0,0,0.9)] z-20" />
+                    </div>
+
+                    {/* Slogan */}
+                    <div className="text-center z-20 mb-4 md:mb-6">
+                        <p className="text-sm md:text-lg font-bold text-white tracking-wider">SUBITE A MÁS DISEÑO, <span className="text-red-500">TECNOLOGÍA</span> Y CONFORT.</p>
+                        <p className="text-2xl md:text-4xl font-black text-white tracking-widest mt-1 drop-shadow-md">SUBITE A MÁS <span className="text-red-500">{vehicleData.model}</span>.</p>
+                    </div>
+
+                    {/* Grid Info */}
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 z-20 border-t border-b border-red-900/60 py-3 md:py-4 relative bg-black/40 backdrop-blur-sm">
+                         <div className="absolute top-0 bottom-0 left-1/3 w-px bg-gradient-to-b from-transparent via-red-600 to-transparent shadow-[0_0_8px_red]"></div>
+                         <div className="absolute top-0 bottom-0 left-2/3 w-px bg-gradient-to-b from-transparent via-red-600 to-transparent shadow-[0_0_8px_red]"></div>
+
+                        {/* Item 1 */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-red-500 flex-shrink-0 flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_0_10px_rgba(255,0,0,0.5)] bg-black">
+                                <DollarSign size={18} className="md:w-5 md:h-5" />
                             </div>
-                            <div class="flex items-center space-x-2 text-[10px] sm:text-xs font-semibold text-slate-800">
-                                <span class="bg-sky-100/80 p-1.5 rounded-lg text-xs">⚙️</span>
-                                <span id="view-srv3">Lavarropas Automáticos</span>
+                            <div>
+                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">FINANCIACIONES</p>
+                                <p className="text-[11px] md:text-sm font-black text-red-500 leading-tight">FLEXIBLES</p>
+                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">ADAPTADAS A VOS</p>
+                            </div>
+                        </div>
+                        
+                        {/* Item 2 */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
+                            <div className="flex-shrink-0 text-red-500 md:mt-1 drop-shadow-[0_0_5px_red]">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-8 md:h-8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                            </div>
+                            <div>
+                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">HACEMOS</p>
+                                <p className="text-[11px] md:text-sm font-black text-red-500 leading-tight">LLAVE POR LLAVE</p>
+                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">PARA QUE NO TE QUEDES A PIE</p>
+                            </div>
+                        </div>
+
+                        {/* Item 3 */}
+                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-3 px-1 md:px-2">
+                            <div className="flex-shrink-0 md:mt-1 relative flex items-center justify-center drop-shadow-[0_0_5px_white]">
+                                 <Shield size={28} className="text-white md:w-8 md:h-8" strokeWidth={1.5} />
+                                 <Check size={14} className="text-red-500 absolute md:w-4 md:h-4" strokeWidth={3}/>
+                            </div>
+                            <div>
+                                <p className="text-[10px] md:text-xs font-bold text-white leading-tight">PLANES A TU MEDIDA</p>
+                                <p className="text-[8px] md:text-[10px] text-gray-300 leading-tight not-italic mt-0.5">CON CUOTAS QUE SE ADAPTAN A VOS</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. Zona inferior con Rectángulo Vacío de Seguridad -->
-                    <div class="w-full flex flex-col items-center mb-2 z-10 space-y-3">
-                        <div class="text-center space-y-1">
-                            <p id="footer-lead" class="text-[11px] font-bold text-slate-900 transition-colors">Tocá acá abajo para reservar tu turno</p>
-                            <p id="footer-sub" class="text-[9px] text-slate-500 font-medium transition-colors">Agendá tu visita técnica en 1 minuto</p>
-                            <div class="text-base text-sky-500 animate-bounce-subtle">👇</div>
-                        </div>
-
-                        <!-- RECTÁNGULO DE SEGURIDAD INTERACTIVO -->
-                        <div id="safety-box" class="relative w-[190px] h-[55px] rounded-2xl border-2 border-dashed border-sky-400/60 bg-sky-100/20 flex items-center justify-center transition-all duration-300">
-                            
-                            <!-- Sticker de enlace simulado de Instagram que se oculta/muestra -->
-                            <div id="ig-link-sticker" class="absolute inset-1.5 bg-white rounded-xl shadow-md flex items-center justify-center space-x-1.5 px-3 border border-slate-100 transform rotate-1 scale-100 transition-all duration-300 cursor-pointer hover:scale-105">
-                                <div class="bg-blue-100 p-1 rounded-full">
-                                    <svg class="w-2.5 h-2.5 text-blue-600 fill-current" viewBox="0 0 24 24">
-                                        <path d="M10.586 13.414a1 1 0 001.414 0l3.828-3.828a4 4 0 00-5.656-5.656l-3.828 3.828a4 4 0 025.656 5.656l-1.414 1.414zm-1.172 1.172a1 1 0 00-1.414 0l-3.828 3.828a4 4 0 005.656 5.656l3.828-3.828a4 4 0 02-5.656-5.656l1.414-1.414z"/>
-                                    </svg>
-                                </div>
-                                <span id="view-sticker-text" class="text-[9px] font-black text-blue-600 uppercase tracking-wider">RESERVAR TURNO 📲</span>
+                    {/* Stock Box */}
+                    <div className="flex items-center justify-between z-20 border border-red-900/50 bg-gradient-to-r from-red-950/60 to-transparent rounded px-3 md:px-5 py-2 md:py-3 mt-3 md:mt-4">
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <Car className="text-white w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_5px_white]" />
+                            <div>
+                                <p className="text-xs md:text-base font-black text-white leading-tight tracking-wider">AMPLIO STOCK DISPONIBLE</p>
+                                <p className="text-[9px] md:text-xs font-bold text-red-500 leading-tight mt-0.5">UNIDADES CON ENTREGA ASEGURADA</p>
                             </div>
-                            
-                            <!-- Texto indicador cuando el sticker está oculto -->
-                            <span id="safety-placeholder" class="text-[8px] text-sky-500/50 font-bold uppercase tracking-wider text-center px-2">Espacio para Link de Instagram</span>
+                        </div>
+                        <div className="text-right border-l border-red-900/80 pl-3 md:pl-4">
+                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">CONSULTÁ</p>
+                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">POR VERSIONES</p>
+                            <p className="text-[8px] md:text-[11px] text-gray-300 leading-tight font-sans not-italic font-bold">Y COLORES</p>
                         </div>
                     </div>
 
+                    {/* CTA */}
+                    <div className="bg-gradient-to-r from-[#5a0000] via-[#c00000] to-[#5a0000] mt-3 md:mt-4 rounded-md p-3 md:p-4 flex items-center justify-center gap-3 md:gap-4 z-20 border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.4)]">
+                        <div className="bg-white rounded-full p-1.5 md:p-2 shadow-[0_0_15px_white]">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="#25D366" className="w-8 h-8 md:w-10 md:h-10"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xl md:text-4xl font-black text-white tracking-tighter leading-none drop-shadow-md">¡CONSULTANOS AHORA!</p>
+                            <p className="text-[9px] md:text-sm text-red-300 font-bold tracking-widest mt-0.5 md:mt-1">TE ASESORAMOS Y RESERVÁS TU {vehicleData.model}</p>
+                        </div>
+                    </div>
+
+                    {/* Footer mini */}
+                    <div className="flex justify-between items-center z-20 mt-3 md:mt-4 px-2">
+                         <div className="flex items-center gap-1.5">
+                            <span className="text-gray-400 text-sm md:text-base">⚡</span>
+                            <div>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">ENTREGA RÁPIDA</p>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">DE 7 A 15 DÍAS</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-1.5">
+                            <span className="text-red-600 text-sm md:text-base drop-shadow-[0_0_2px_red]">★</span>
+                            <div>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">STOCK DISPONIBLE</p>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">UNIDADES LISTAS</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-1.5">
+                            <Check size={12} className="text-gray-400 md:w-4 md:h-4" strokeWidth={3} />
+                            <div>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-gray-400 leading-none">RESPALDO OFICIAL</p>
+                                 <p className="text-[7px] md:text-[9px] font-bold text-red-600 leading-none mt-0.5">{vehicleData.brand}</p>
+                            </div>
+                         </div>
+                    </div>
                 </div>
-            </div>
+              </div>
+            )}
 
-            <!-- Botón flotante para salir del modo captura (Solo visible en Modo Captura) -->
-            <button id="btn-exit-capture" onclick="toggleCaptureMode()" class="fixed bottom-6 right-6 bg-slate-900 border-2 border-white hover:bg-slate-800 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl hidden z-50">
-                ✏️ Salir del Modo Captura
-            </button>
-        </section>
+            {/* TEMA: SPORT */}
+            {activeTheme.id === 'sport' && (
+              <div className="flex flex-col h-full relative">
+                {/* Decoración en ángulo */}
+                <div className="absolute top-0 right-0 w-2/3 h-full bg-black -skew-x-12 translate-x-1/4 origin-bottom shadow-2xl z-0"></div>
+                
+                <div className="relative z-10 flex flex-col h-full p-8">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-auto">
+                        <img src={logoImage} alt="Logo" className="h-10 object-contain bg-white/10 p-1 rounded backdrop-blur-sm" />
+                        <div className="text-right">
+                            <span className="bg-white text-red-900 px-3 py-1 text-sm uppercase tracking-black font-black italic">Stock Limitado</span>
+                        </div>
+                    </div>
 
-    </main>
+                    {/* Contenido Central */}
+                    <div className="mt-8 mb-4">
+                        <h2 className="text-3xl text-red-200 uppercase tracking-tighter">{vehicleData.brand}</h2>
+                        <h1 className="text-6xl font-black uppercase tracking-tighter leading-none">{vehicleData.model}</h1>
+                    </div>
 
-    <!-- PROCESADOR Y MODAL DE CARGA -->
-    <div id="loading-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden opacity-0 transition-all duration-300">
-        <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] max-w-sm w-full text-center space-y-4 shadow-2xl">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ice-500 mx-auto"></div>
-            <h3 class="text-lg font-bold text-white">Generando tu Historia</h3>
-            <p class="text-xs text-slate-400">Procesando los elementos glaciales y exportando el archivo PNG en alta resolución...</p>
+                    {/* Imagen Principal (Desplazada) */}
+                    <div className="relative h-64 w-full -mr-12 self-end shadow-2xl">
+                        <img src={carImage} alt="Vehículo" className="w-full h-full object-cover border-4 border-white shadow-[20px_20px_0px_rgba(0,0,0,0.5)]" />
+                    </div>
+
+                    {/* Footer Datos */}
+                    <div className="mt-auto grid grid-cols-3 gap-2 bg-black/50 p-4 rounded-lg backdrop-blur-md border-l-4 border-red-500">
+                        <div className="col-span-2">
+                             <p className="text-4xl font-black text-white">{vehicleData.price}</p>
+                             <p className="text-sm text-gray-300">{vehicleData.features}</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                             <p className="bg-red-600 px-2 py-1 text-sm inline-block">{vehicleData.year}</p>
+                             <p className="bg-gray-800 px-2 py-1 text-sm inline-block">{vehicleData.mileage}</p>
+                        </div>
+                    </div>
+                     <div className="mt-4 text-center text-sm font-bold opacity-80">
+                        {vehicleData.contact}
+                    </div>
+                </div>
+              </div>
+            )}
+
+            {/* TEMA: MODERN (Minimalista) */}
+            {activeTheme.id === 'modern' && (
+              <div className="flex flex-col h-full">
+                {/* Imagen arriba ocupando 60% */}
+                <div className="h-[60%] w-full relative">
+                    <img src={carImage} alt="Vehículo" className="w-full h-full object-cover" />
+                    {/* Overlay degradado ligero */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent"></div>
+                    <img src={logoImage} alt="Logo" className="absolute top-6 left-6 h-8 object-contain bg-white/90 p-1.5 rounded shadow-sm" />
+                    
+                    {/* Badge de año/km */}
+                    <div className="absolute bottom-0 right-0 bg-white px-6 py-3 rounded-tl-2xl shadow-lg flex gap-4">
+                         <span className="font-semibold text-gray-800">{vehicleData.year}</span>
+                         <span className="text-gray-400">|</span>
+                         <span className="font-semibold text-gray-800">{vehicleData.mileage}</span>
+                    </div>
+                </div>
+
+                {/* Textos abajo */}
+                <div className="flex-1 p-8 bg-white flex flex-col justify-between">
+                    <div>
+                        <p className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-1">{vehicleData.brand}</p>
+                        <h1 className="text-4xl font-light text-gray-900 mb-2">{vehicleData.model}</h1>
+                        <p className="text-gray-500 text-sm">{vehicleData.features}</p>
+                    </div>
+
+                    <div className="flex items-end justify-between border-t border-gray-100 pt-6">
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Precio Final</p>
+                            <p className="text-3xl font-semibold text-gray-900">{vehicleData.price}</p>
+                        </div>
+                        <div className="text-right">
+                             <div className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium">
+                                Contactar Ahora
+                             </div>
+                             <p className="text-xs text-gray-500 mt-2">{vehicleData.contact}</p>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            )}
+            
+          </div>
         </div>
+        
+        <p className="text-gray-500 text-sm mt-6 flex items-center gap-2">
+            Vista previa en vivo (Proporción 4:5 Vertical)
+        </p>
+
+      </div>
     </div>
-
-    <!-- PIE DE PÁGINA -->
-    <footer id="main-footer" class="w-full max-w-6xl border-t border-slate-900 pt-6 text-center text-xs text-slate-600 flex flex-col sm:flex-row justify-between items-center gap-4 transition-opacity duration-300">
-        <p>© 2026 Nico Refrigeración - Herramientas de Marketing Digital Profesional.</p>
-        <p class="text-[10px]">Diseñado para brindar el mayor impacto en redes sociales.</p>
-    </footer>
-
-    <!-- LOGICA DEL SIMULADOR -->
-    <script>
-        let stickerVisible = true;
-        let captureModeActive = false;
-        let currentBgTheme = 'glaciar';
-        const defaultAvatar = "https://i.postimg.cc/sMkkxjXs/logo-nico.jpg";
-
-        // Ajustes predefinidos para cambiar contenidos rápidamente
-        const presets = {
-            climatizacion: {
-                title: "¿Problemas con tu Climatización?",
-                subtitle: "Reparación y mantenimiento profesional con Garantía Escrita.",
-                srv1: "Aires Acondicionados (Split/Centrales)",
-                srv2: "Cargas de Gas R410a / R22",
-                srv3: "Mantenimiento Preventivo Completo"
-            },
-            heladeras: {
-                title: "¿Tu Heladera No Enfría?",
-                subtitle: "Soluciones rápidas a domicilio en el día con Repuestos Originales.",
-                srv1: "Heladeras No Frost y Cíclicas",
-                srv2: "Cambio de Motores y Compresores",
-                srv3: "Fugas de Gas y Termostatos"
-            },
-            lavarropas: {
-                title: "¿Lavarropas Roto o con Ruidos?",
-                subtitle: "Service a domicilio directo. Evitá lavar a mano hoy mismo.",
-                srv1: "Cambio de Rulemanes e Interruptores",
-                srv2: "Reparación de Placas Electrónicas",
-                srv3: "Bombas de Desagote y Limpieza"
-            }
-        };
-
-        function loadPreset(key) {
-            const data = presets[key];
-            if(data) {
-                document.getElementById('input-title').value = data.title;
-                document.getElementById('input-subtitle').value = data.subtitle;
-                document.getElementById('input-srv1').value = data.srv1;
-                document.getElementById('input-srv2').value = data.srv2;
-                document.getElementById('input-srv3').value = data.srv3;
-                updateStory();
-            }
-        }
-
-        // Cargar logo localmente (Inmune a errores de CORS en el render de html2canvas)
-        function loadCustomLogo(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const logos = document.querySelectorAll('.logo-preview-img');
-                    logos.forEach(img => {
-                        img.src = e.target.result;
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function resetLogo() {
-            const logos = document.querySelectorAll('.logo-preview-img');
-            logos.forEach(img => {
-                img.src = defaultAvatar;
-            });
-            document.getElementById('input-logo').value = "";
-            document.getElementById('input-logo-size').value = 56;
-            updateStory();
-        }
-
-        // Sincronizar textos y tamaños en tiempo real
-        function updateStory() {
-            const titleValue = document.getElementById('input-title').value;
-            const viewTitle = document.getElementById('view-title');
-            if(titleValue.trim() === "") {
-                viewTitle.innerHTML = "¿Problemas con tu <br><span class='bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent'>Climatización?</span>";
-            } else {
-                viewTitle.innerText = titleValue;
-            }
-
-            const subtitleValue = document.getElementById('input-subtitle').value;
-            const viewSubtitle = document.getElementById('view-subtitle');
-            viewSubtitle.innerText = subtitleValue;
-
-            document.getElementById('view-srv1').innerText = document.getElementById('input-srv1').value;
-            document.getElementById('view-srv2').innerText = document.getElementById('input-srv2').value;
-            document.getElementById('view-srv3').innerText = document.getElementById('input-srv3').value;
-
-            const stickerValue = document.getElementById('input-sticker').value;
-            document.getElementById('view-sticker-text').innerText = stickerValue;
-
-            // Control dinámico de tamaño del logo central
-            const logoSize = document.getElementById('input-logo-size').value;
-            document.getElementById('logo-size-value').innerText = logoSize + "px";
-            const logoImg = document.getElementById('view-logo');
-            logoImg.style.width = logoSize + "px";
-            logoImg.style.height = logoSize + "px";
-        }
-
-        // Mostrar / Ocultar el Sticker de enlace
-        function toggleSticker() {
-            stickerVisible = !stickerVisible;
-            const sticker = document.getElementById('ig-link-sticker');
-            const toggleDot = document.getElementById('toggle-dot');
-            const btnToggle = document.getElementById('btn-sticker-toggle');
-
-            if (stickerVisible) {
-                sticker.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                toggleDot.classList.remove('translate-x-1');
-                toggleDot.classList.add('translate-x-6');
-                btnToggle.classList.remove('bg-slate-700');
-                btnToggle.classList.add('bg-ice-600');
-            } else {
-                sticker.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                toggleDot.classList.remove('translate-x-6');
-                toggleDot.classList.add('translate-x-1');
-                btnToggle.classList.remove('bg-ice-600');
-                btnToggle.classList.add('bg-slate-700');
-            }
-        }
-
-        // Alternar el "Modo Captura" (Oculta controles y maximiza el canvas)
-        function toggleCaptureMode() {
-            captureModeActive = !captureModeActive;
-            
-            const header = document.getElementById('main-header');
-            const footer = document.getElementById('main-footer');
-            const controlPanel = document.getElementById('control-panel');
-            const previewSection = document.getElementById('preview-section');
-            const quickControls = document.getElementById('quick-controls');
-            const exitButton = document.getElementById('btn-exit-capture');
-            const phoneCase = document.getElementById('phone-case');
-
-            if (captureModeActive) {
-                // Esconder interfaz
-                header.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mb-0', 'overflow-hidden');
-                footer.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'pt-0', 'overflow-hidden');
-                controlPanel.classList.add('hidden');
-                quickControls.classList.add('hidden');
-                
-                // Mostrar botón flotante de salida
-                exitButton.classList.remove('hidden');
-
-                // Rediseñar el contenedor de previsualización para captura óptima
-                previewSection.classList.remove('lg:col-span-7');
-                previewSection.classList.add('lg:col-span-12', 'py-10');
-                phoneCase.classList.remove('border-slate-800', 'bg-slate-900');
-                phoneCase.classList.add('border-transparent', 'bg-transparent', 'p-0', 'shadow-none');
-            } else {
-                // Restaurar interfaz
-                header.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mb-8', 'overflow-hidden');
-                footer.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'pt-6', 'overflow-hidden');
-                controlPanel.classList.remove('hidden');
-                quickControls.classList.remove('hidden');
-                
-                // Ocultar botón de salida
-                exitButton.classList.add('hidden');
-
-                // Volver a estado original
-                previewSection.classList.add('lg:col-span-7');
-                previewSection.classList.remove('lg:col-span-12', 'py-10');
-                phoneCase.classList.add('border-slate-800', 'bg-slate-900');
-                phoneCase.classList.remove('border-transparent', 'bg-transparent', 'p-0', 'shadow-none');
-            }
-        }
-
-        // Cambiar el tema del fondo de la historia
-        function changeBackground(theme) {
-            currentBgTheme = theme;
-            const viewport = document.getElementById('story-viewport');
-            
-            // Textos del celular para adaptabilidad de contraste
-            const userText = document.getElementById('text-user');
-            const timeText = document.getElementById('text-time');
-            const title = document.getElementById('view-title');
-            const subtitle = document.getElementById('view-subtitle');
-            const srvBox = document.getElementById('services-box');
-            const badge = document.getElementById('badge-matriculado');
-            const footerLead = document.getElementById('footer-lead');
-            const footerSub = document.getElementById('footer-sub');
-            const safetyBox = document.getElementById('safety-box');
-            const decoFlakes = document.getElementById('deco-flakes');
-
-            // Quitar clases previas
-            viewport.classList.remove('bg-gradient-glaciar', 'bg-gradient-darkice', 'bg-gradient-electric');
-
-            if (theme === 'glaciar') {
-                viewport.classList.add('bg-gradient-glaciar');
-                // Estilo claro original
-                userText.className = "text-slate-800 font-extrabold";
-                timeText.className = "text-slate-500 font-medium";
-                title.className = "text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight tracking-tight";
-                subtitle.className = "text-xs text-slate-600 font-light max-w-[240px] mx-auto leading-relaxed";
-                srvBox.className = "bg-white/50 backdrop-blur-md border border-white/60 rounded-[1.8rem] p-4 shadow-lg shadow-sky-900/5 space-y-2 text-left max-w-[270px] mx-auto";
-                badge.className = "text-[8px] font-black tracking-[0.25em] text-sky-800 uppercase bg-white/70 px-3 py-1 rounded-full border border-white/80";
-                footerLead.className = "text-[11px] font-bold text-slate-900";
-                footerSub.className = "text-[9px] text-slate-500 font-medium";
-                safetyBox.className = "relative w-[190px] h-[55px] rounded-2xl border-2 border-dashed border-sky-400/60 bg-sky-100/20 flex items-center justify-center transition-all duration-300";
-                decoFlakes.classList.remove('opacity-20');
-                decoFlakes.classList.add('opacity-[0.06]');
-            } else if (theme === 'darkice') {
-                viewport.classList.add('bg-gradient-darkice');
-                // Estilo oscuro sofisticado
-                userText.className = "text-white font-extrabold";
-                timeText.className = "text-slate-400 font-medium";
-                title.className = "text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight";
-                subtitle.className = "text-xs text-slate-300 font-light max-w-[240px] mx-auto leading-relaxed";
-                srvBox.className = "bg-slate-950/70 backdrop-blur-md border border-slate-800 rounded-[1.8rem] p-4 shadow-xl space-y-2 text-left max-w-[270px] mx-auto text-slate-200";
-                badge.className = "text-[8px] font-black tracking-[0.25em] text-white uppercase bg-slate-900/80 px-3 py-1 rounded-full border border-slate-700/80";
-                footerLead.className = "text-[11px] font-bold text-white";
-                footerSub.className = "text-[9px] text-slate-400 font-medium";
-                safetyBox.className = "relative w-[190px] h-[55px] rounded-2xl border-2 border-dashed border-slate-700/60 bg-slate-950/40 flex items-center justify-center transition-all duration-300";
-                decoFlakes.classList.remove('opacity-[0.06]');
-                decoFlakes.classList.add('opacity-20');
-            } else if (theme === 'electric') {
-                viewport.classList.add('bg-gradient-electric');
-                // Estilo azul profundo vibrante
-                userText.className = "text-white font-extrabold";
-                timeText.className = "text-sky-200 font-medium";
-                title.className = "text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight";
-                subtitle.className = "text-xs text-sky-100 font-light max-w-[240px] mx-auto leading-relaxed";
-                srvBox.className = "bg-white/95 backdrop-blur-md border border-white rounded-[1.8rem] p-4 shadow-xl space-y-2 text-left max-w-[270px] mx-auto text-slate-900";
-                badge.className = "text-[8px] font-black tracking-[0.25em] text-sky-900 uppercase bg-white/90 px-3 py-1 rounded-full border border-white";
-                footerLead.className = "text-[11px] font-bold text-white";
-                footerSub.className = "text-[9px] text-sky-100 font-medium";
-                safetyBox.className = "relative w-[190px] h-[55px] rounded-2xl border-2 border-dashed border-white/60 bg-white/10 flex items-center justify-center transition-all duration-300";
-                decoFlakes.classList.remove('opacity-[0.06]');
-                decoFlakes.classList.add('opacity-20');
-            }
-        }
-
-        // EXPORTACIÓN EN ALTA CALIDAD DE LA IMAGEN COMERCIAL
-        function downloadStoryImage() {
-            const viewport = document.getElementById('story-viewport');
-            const loader = document.getElementById('loading-modal');
-
-            // 1. Mostrar modal de carga
-            loader.classList.remove('hidden');
-            setTimeout(() => { loader.classList.remove('opacity-0'); }, 10);
-
-            // 2. Ejecutar renderización a través de html2canvas configurado
-            const options = {
-                scale: 3,             // Escala de alta definición (Pixel perfect 3x)
-                useCORS: true,        // Permite procesar las imágenes remotas
-                allowTaint: true,     // Asegura procesamiento correcto de imágenes
-                backgroundColor: null // Mantiene la transparencia del viewport
-            };
-
-            html2canvas(viewport, options).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Forzar la descarga en el navegador con enlace simulado
-                const downloadLink = document.createElement('a');
-                downloadLink.download = 'Historia_Nico_Refrigeracion_' + currentBgTheme + '.png';
-                downloadLink.href = imgData;
-                downloadLink.click();
-
-                // 3. Ocultar modal de carga
-                setTimeout(() => {
-                    loader.classList.add('opacity-0');
-                    setTimeout(() => { loader.classList.add('hidden'); }, 300);
-                }, 500);
-            }).catch(err => {
-                console.error("Error al exportar la imagen: ", err);
-                loader.classList.add('opacity-0');
-                setTimeout(() => { loader.classList.add('hidden'); }, 300);
-            });
-        }
-
-        // Inicializar sincronización
-        window.addEventListener('DOMContentLoaded', () => {
-            updateStory();
-        });
-    </script>
-</body>
-</html>
+  );
+}
