@@ -2,31 +2,51 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Automobili Fusion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        .drag-over { border-color: #dc2626 !important; background-color: #450a0a !important; }
+        .loader { border-top-color: #dc2626; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-200 p-4">
+<body class="bg-slate-950 min-h-screen p-3 md:p-8 font-sans text-slate-200">
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950/90 z-50 hidden flex flex-col items-center justify-center">
-        <p class="text-red-500 font-bold uppercase animate-pulse">Procesando...</p>
+        <div class="loader rounded-full border-4 border-t-4 border-slate-700 h-12 w-12 mb-4"></div>
+        <p class="text-red-500 font-bold text-sm uppercase animate-pulse">Procesando...</p>
     </div>
 
-    <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl p-6 border border-slate-800">
-        <h1 class="text-xl font-black text-white uppercase">Automobili Fusion</h1>
-        <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.pdf" class="hidden">
-        <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-red-600 text-white px-6 py-3 rounded-lg font-bold w-full uppercase text-sm">Seleccionar Archivos</button>
+    <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl shadow-2xl p-5 border border-slate-800">
+        <h1 class="text-2xl font-black text-white uppercase tracking-tight">Automobili Fusion</h1>
+        <p class="text-red-600 text-xs font-bold uppercase tracking-widest mb-6">Gestor de Documentos</p>
+
+        <div id="drop-zone" class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-red-600 hover:bg-slate-800/50">
+            <p class="text-slate-400 text-sm">Toca para seleccionar o arrastra archivos</p>
+            <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.pdf" class="hidden">
+            <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase w-full">Seleccionar Archivos</button>
+        </div>
+
         <div id="file-list" class="mt-6 space-y-2"></div>
-        <button id="merge-btn" disabled class="mt-6 bg-red-600 disabled:bg-slate-800 text-white px-8 py-4 rounded-xl font-black w-full uppercase text-sm">Unir documentos</button>
+
+        <div class="mt-6">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase ml-1">Nombre resultante:</label>
+            <input type="text" id="file-name" value="automobili_doc" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:ring-2 focus:ring-red-600 outline-none">
+        </div>
+
+        <button id="merge-btn" disabled class="mt-8 bg-red-600 disabled:bg-slate-800 text-white px-8 py-4 rounded-xl font-black w-full uppercase text-sm shadow-lg shadow-red-900/20">
+            Unir documentos
+        </button>
     </div>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        let selectedFilesData = [];
+        let items = [];
 
-        document.getElementById('file-input').addEventListener('change', async (e) => {
-            for (let file of e.target.files) {
+        async function handleFiles(files) {
+            for (let file of files) {
                 let preview = null;
                 if (file.type.startsWith('image/')) {
                     preview = await new Promise(r => { let rd = new FileReader(); rd.onload = (e) => r(e.target.result); rd.readAsDataURL(file); });
@@ -40,34 +60,37 @@
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
                     preview = canvas.toDataURL();
                 }
-                selectedFilesData.push({ file, preview, rotation: 0 });
+                items.push({ file, preview, rotation: 0 });
             }
             updateUI();
-        });
+        }
 
         function updateUI() {
             const list = document.getElementById('file-list');
             list.innerHTML = '';
-            selectedFilesData.forEach((item, index) => {
+            items.forEach((item, i) => {
                 const div = document.createElement('div');
-                div.className = 'bg-slate-800 p-2 rounded flex items-center gap-3 text-xs';
-                div.innerHTML = `<img src="${item.preview}" style="transform: rotate(${item.rotation}deg)" class="w-12 h-12 object-contain bg-black">
-                                 <span class="flex-1 truncate">${item.file.name}</span>
-                                 <button onclick="rotate(${index})" class="px-2">↻</button>
-                                 <button onclick="remove(${index})" class="text-red-500 px-2">✕</button>`;
+                div.className = 'bg-slate-800 p-2 rounded flex items-center gap-3 text-xs border border-slate-700';
+                div.innerHTML = `
+                    <div class="w-12 h-12 bg-black rounded flex items-center justify-center overflow-hidden">
+                        ${item.preview ? `<img src="${item.preview}" style="transform: rotate(${item.rotation}deg)" class="object-contain h-full">` : '<span class="text-[8px]">PDF</span>'}
+                    </div>
+                    <span class="flex-1 truncate">${item.file.name}</span>
+                    <button onclick="rotate(${i})" class="p-2 hover:bg-slate-700 rounded">↻</button>
+                    <button onclick="remove(${i})" class="text-red-500 p-2">✕</button>`;
                 list.appendChild(div);
             });
-            document.getElementById('merge-btn').disabled = selectedFilesData.length === 0;
+            document.getElementById('merge-btn').disabled = items.length === 0;
         }
 
-        function rotate(i) { selectedFilesData[i].rotation = (selectedFilesData[i].rotation + 90) % 360; updateUI(); }
-        function remove(i) { selectedFilesData.splice(i, 1); updateUI(); }
+        function rotate(i) { items[i].rotation = (items[i].rotation + 90) % 360; updateUI(); }
+        function remove(i) { items.splice(i, 1); updateUI(); }
 
         document.getElementById('merge-btn').addEventListener('click', async () => {
             document.getElementById('loading-overlay').classList.remove('hidden');
             try {
                 const mergedPdf = await PDFLib.PDFDocument.create();
-                for (const item of selectedFilesData) {
+                for (const item of items) {
                     const ab = await item.file.arrayBuffer();
                     if (item.file.type === 'application/pdf') {
                         const pdf = await PDFLib.PDFDocument.load(ab);
@@ -83,11 +106,16 @@
                 const bytes = await mergedPdf.save();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-                link.download = 'automobili_fusion.pdf';
+                link.download = (document.getElementById('file-name').value || 'documento') + '.pdf';
                 link.click();
-            } catch(e) { console.error(e); alert('Error: ' + e.message); }
+            } catch(e) { alert('Error: ' + e.message); }
             document.getElementById('loading-overlay').classList.add('hidden');
         });
+
+        const dz = document.getElementById('drop-zone');
+        dz.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+        dz.addEventListener('dragover', (e) => e.preventDefault());
+        document.getElementById('file-input').addEventListener('change', (e) => handleFiles(e.target.files));
     </script>
 </body>
 </html>
