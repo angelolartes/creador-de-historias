@@ -2,37 +2,87 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mesa de Trabajo Digital</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unidor de PDF e Imágenes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-        .columna { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; height: 400px; display: flex; flex-direction: column; }
-        .drop-zone { border: 2px dashed #aaa; padding: 20px; text-align: center; cursor: pointer; flex-grow: 1; margin: 10px 0; }
-        button { background: #2563eb; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .drag-over { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
 </head>
-<body>
-    <h1>Mesa de Trabajo</h1>
-    <input type="text" id="nombreCliente" placeholder="Nombre del Cliente">
-    <div class="grid" id="tablero">
-        <!-- Generaremos las 6 columnas aquí -->
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Unidor de PDF e Imágenes</h1>
+        <p class="text-gray-600 mb-6">Arrastra tus imágenes (JPG/PNG) y PDFs aquí para unirlos en un solo archivo PDF.</p>
+
+        <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer transition-all hover:border-blue-500">
+            <p class="text-gray-500 mb-2">Haz clic o arrastra archivos aquí</p>
+            <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.pdf" class="hidden">
+            <button onclick="document.getElementById('file-input').click()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Seleccionar Archivos</button>
+        </div>
+
+        <div id="file-list" class="mt-6 space-y-2"></div>
+
+        <div class="mt-8 flex justify-center">
+            <button id="merge-btn" disabled class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                Unir y Descargar PDF
+            </button>
+        </div>
     </div>
 
     <script>
-        const tablero = document.getElementById('tablero');
-        for (let i = 1; i <= 6; i++) {
-            tablero.innerHTML += `
-                <div class="columna">
-                    <h3>PDF N°${i}</h3>
-                    <div class="drop-zone" ondrop="handleDrop(event)" ondragover="allowDrop(event)">
-                        Arrastra archivos aquí
-                    </div>
-                    <button onclick="alert('PDF N°${i} generado para ' + document.getElementById('nombreCliente').value)">Generar PDF</button>
-                </div>
-            `;
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const mergeBtn = document.getElementById('merge-btn');
+        let selectedFiles = [];
+
+        // Drag and Drop handlers
+        ['dragover', 'dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                if (evt === 'dragover') dropZone.classList.add('drag-over');
+                else dropZone.classList.remove('drag-over');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => selectedFiles.push(file));
+            updateFileList();
         }
-        function allowDrop(e) { e.preventDefault(); }
-        function handleDrop(e) { e.preventDefault(); alert("Archivo capturado en la columna"); }
-    </script>
-</body>
-</html>
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-gray-100 p-3 rounded-lg text-sm';
+                div.innerHTML = `<span>${file.name}</span> <button onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">Eliminar</button>`;
+                fileList.appendChild(div);
+            });
+            mergeBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        async function mergePDFs() {
+            const { PDFDocument } = PDFLib;
+            const mergedPdf = await PDFDocument.create();
+
+            for (const file of selectedFiles) {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                if (file.type === 'application/pdf') {
+                    const pdf = await PDFDocument.load(arrayBuffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach(page => mergedPdf.addPage(page));
