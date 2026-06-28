@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Automobili Group - PDF Merger</title>
+    <title>Automobili Group - PDF Fusion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
         .drag-over { border-color: #dc2626 !important; background-color: #450a0a !important; }
         .loader { border-top-color: #dc2626; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Custom scrollbar for mobile cleanliness */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
@@ -23,8 +22,8 @@
     </div>
 
     <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl shadow-2xl p-5 md:p-8 border border-slate-800">
-        <h1 class="text-2xl font-black text-white mb-1 uppercase tracking-tight">Gestor de Documentos</h1>
-        <p class="text-red-600 text-xs font-bold uppercase tracking-widest mb-6">PDF e Imágenes combinadas</p>
+        <h1 class="text-2xl font-black text-white mb-1 uppercase tracking-tight">Automobili Fusion</h1>
+        <p class="text-red-600 text-xs font-bold uppercase tracking-widest mb-6">Gestor de Documentos</p>
 
         <div id="drop-zone" class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer transition-all active:scale-[0.98] hover:border-red-600 hover:bg-slate-800/50">
             <svg class="w-10 h-10 mx-auto text-slate-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -59,7 +58,9 @@
         const fileNameInput = document.getElementById('file-name');
         const controls = document.getElementById('controls');
         const loadingOverlay = document.getElementById('loading-overlay');
-        let selectedFiles = [];
+        
+        // Estructura para guardar archivos con su rotación
+        let selectedFilesData = [];
 
         ['dragover', 'dragleave', 'drop'].forEach(evt => {
             dropZone.addEventListener(evt, (e) => {
@@ -72,48 +73,72 @@
         dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-        function handleFiles(files) {
-            for (let file of files) selectedFiles.push(file);
+        async function handleFiles(files) {
+            for (let file of files) {
+                const preview = file.type.startsWith('image/') ? await readFileAsDataURL(file) : null;
+                selectedFilesData.push({ file, preview, rotation: 0 });
+            }
             updateFileList();
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
         }
 
         function updateFileList() {
             fileList.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
-                const isPdf = file.type === 'application/pdf';
+            selectedFilesData.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-slate-800 p-3 rounded-lg text-xs border border-slate-700';
+                div.className = 'bg-slate-800 p-3 rounded-lg border border-slate-700 space-y-2';
+                
+                let previewHtml = item.preview ? 
+                    `<img src="${item.preview}" style="transform: rotate(${item.rotation}deg)" class="w-full h-24 object-contain bg-slate-950 rounded">` :
+                    `<div class="w-full h-24 flex items-center justify-center bg-slate-950 rounded text-slate-500 font-bold">PDF</div>`;
+
                 div.innerHTML = `
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="text-base">${isPdf ? '📄' : '🖼️'}</span>
-                        <span class="truncate font-medium text-slate-200">${file.name}</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-1/3">${previewHtml}</div>
+                        <div class="flex-1 truncate text-xs text-slate-300 font-medium">${item.file.name}</div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="rotateFile(${index})" class="text-white bg-slate-700 hover:bg-red-600 px-2 py-1 rounded text-[10px]">↻</button>
+                            <button onclick="removeFile(${index})" class="text-red-400 p-1">✕</button>
+                        </div>
                     </div>
-                    <div class="flex gap-1">
-                        <button onclick="moveFile(${index}, -1)" class="text-slate-400 hover:text-white p-2">↑</button>
-                        <button onclick="moveFile(${index}, 1)" class="text-slate-400 hover:text-white p-2">↓</button>
-                        <button onclick="removeFile(${index})" class="text-red-400 font-bold p-2">✕</button>
-                    </div>`;
+                    <div class="flex justify-between">
+                        <button onclick="moveFile(${index}, -1)" class="text-slate-400 text-xs">↑ Mover</button>
+                        <button onclick="moveFile(${index}, 1)" class="text-slate-400 text-xs">↓ Mover</button>
+                    </div>
+                `;
                 fileList.appendChild(div);
             });
-            mergeBtn.disabled = selectedFiles.length === 0;
-            controls.classList.toggle('hidden', selectedFiles.length === 0);
+            mergeBtn.disabled = selectedFilesData.length === 0;
+            controls.classList.toggle('hidden', selectedFilesData.length === 0);
+        }
+
+        function rotateFile(index) {
+            selectedFilesData[index].rotation = (selectedFilesData[index].rotation + 90) % 360;
+            updateFileList();
         }
 
         function moveFile(index, direction) {
             const newIndex = index + direction;
-            if (newIndex >= 0 && newIndex < selectedFiles.length) {
-                [selectedFiles[index], selectedFiles[newIndex]] = [selectedFiles[newIndex], selectedFiles[index]];
+            if (newIndex >= 0 && newIndex < selectedFilesData.length) {
+                [selectedFilesData[index], selectedFilesData[newIndex]] = [selectedFilesData[newIndex], selectedFilesData[index]];
                 updateFileList();
             }
         }
 
         function removeFile(index) {
-            selectedFiles.splice(index, 1);
+            selectedFilesData.splice(index, 1);
             updateFileList();
         }
 
         function clearAll() {
-            selectedFiles = [];
+            selectedFilesData = [];
             updateFileList();
         }
 
@@ -123,17 +148,30 @@
                 const { PDFDocument } = PDFLib;
                 const mergedPdf = await PDFDocument.create();
 
-                for (const file of selectedFiles) {
-                    const arrayBuffer = await file.arrayBuffer();
-                    if (file.type === 'application/pdf') {
+                for (const item of selectedFilesData) {
+                    const arrayBuffer = await item.file.arrayBuffer();
+                    if (item.file.type === 'application/pdf') {
                         const pdf = await PDFDocument.load(arrayBuffer);
                         const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
                         pages.forEach(p => mergedPdf.addPage(p));
-                    } else if (file.type.startsWith('image/')) {
+                    } else if (item.file.type.startsWith('image/')) {
                         const imageBytes = new Uint8Array(arrayBuffer);
-                        const img = file.type === 'image/png' ? await mergedPdf.embedPng(imageBytes) : await mergedPdf.embedJpg(imageBytes);
-                        const page = mergedPdf.addPage([img.width, img.height]);
-                        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+                        const img = item.file.type === 'image/png' ? await mergedPdf.embedPng(imageBytes) : await mergedPdf.embedJpg(imageBytes);
+                        
+                        // Rotar imagen antes de dibujar si es necesario
+                        // Nota: pdf-lib no rota imágenes directamente. Para rotar en el PDF, 
+                        // deberíamos rotar la página en la que se dibuja.
+                        const pageWidth = (item.rotation === 90 || item.rotation === 270) ? img.height : img.width;
+                        const pageHeight = (item.rotation === 90 || item.rotation === 270) ? img.width : img.height;
+                        const page = mergedPdf.addPage([pageWidth, pageHeight]);
+                        
+                        page.drawImage(img, {
+                            x: item.rotation === 90 ? pageWidth : (item.rotation === 180 ? pageWidth : 0),
+                            y: item.rotation === 180 ? pageHeight : (item.rotation === 270 ? pageHeight : 0),
+                            width: img.width,
+                            height: img.height,
+                            rotate: { degrees: item.rotation }
+                        });
                     }
                 }
 
@@ -141,11 +179,11 @@
                 const blob = new Blob([bytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = (fileNameInput.value || 'automobili_doc') + '.pdf';
+                link.download = (fileNameInput.value || 'automobili_fusion') + '.pdf';
                 link.click();
             } catch (err) {
                 console.error(err);
-                alert('Error al procesar. Verifica que los archivos sean válidos.');
+                alert('Error al procesar. Verifica los archivos.');
             } finally {
                 loadingOverlay.classList.add('hidden');
             }
@@ -153,3 +191,8 @@
     </script>
 </body>
 </html>
+"""
+# Escribir el archivo
+with open('automobili_fusion.html', 'w') as f:
+    f.write(new_html_content)
+print("Archivo generado exitosamente.")
