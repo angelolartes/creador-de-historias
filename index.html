@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Automobili Group - PDF Fusion</title>
+    <title>Automobili Fusion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <!-- PDF.js para renderizar miniaturas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         .drag-over { border-color: #dc2626 !important; background-color: #450a0a !important; }
         .loader { border-top-color: #dc2626; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
     </style>
 </head>
-<body class="bg-slate-950 p-3 md:p-8 font-sans text-slate-200">
+<body class="bg-slate-950 min-h-screen p-3 md:p-8 font-sans text-slate-200">
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950/90 z-50 hidden flex flex-col items-center justify-center">
         <div class="loader rounded-full border-4 border-t-4 border-slate-700 h-12 w-12 mb-4"></div>
-        <p class="text-red-500 font-bold text-xs uppercase animate-pulse">Procesando...</p>
+        <p class="text-red-500 font-bold text-sm tracking-widest uppercase animate-pulse">Procesando...</p>
     </div>
 
-    <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl p-5 border border-slate-800">
-        <h1 class="text-xl font-black text-white uppercase">Automobili Fusion</h1>
-        <p class="text-red-600 text-[10px] font-bold uppercase mb-6">Gestor de Documentos</p>
+    <div class="max-w-lg mx-auto bg-slate-900 rounded-2xl shadow-2xl p-5 border border-slate-800">
+        <h1 class="text-2xl font-black text-white uppercase tracking-tight">Automobili Fusion</h1>
+        <p class="text-red-600 text-xs font-bold uppercase tracking-widest mb-6">Gestor de Documentos</p>
 
         <div id="drop-zone" class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-red-600 hover:bg-slate-800/50">
             <p class="text-slate-400 text-sm">Toca para seleccionar o arrastra archivos</p>
             <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.pdf" class="hidden">
-            <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase w-full">Seleccionar</button>
+            <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase w-full">Seleccionar Archivos</button>
         </div>
 
         <div id="file-list" class="mt-6 space-y-2"></div>
+
         <div class="mt-6">
-            <input type="text" id="file-name" value="automobili_doc" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase ml-1">Nombre resultante:</label>
+            <input type="text" id="file-name" value="automobili_doc" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:ring-2 focus:ring-red-600 outline-none">
         </div>
-        <button id="merge-btn" disabled class="mt-6 bg-red-600 disabled:bg-slate-800 text-white px-8 py-4 rounded-xl font-black w-full uppercase text-sm">Unir documentos</button>
+
+        <button id="merge-btn" disabled class="mt-8 bg-red-600 hover:bg-red-700 disabled:bg-slate-800 disabled:text-slate-600 text-white px-8 py-4 rounded-xl font-black w-full uppercase text-sm tracking-widest shadow-lg shadow-red-900/20">
+            Unir documentos
+        </button>
     </div>
 
     <script>
@@ -58,7 +65,7 @@
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             const page = await pdf.getPage(1);
-            const viewport = page.getViewport({ scale: 0.5 });
+            const viewport = page.getViewport({ scale: 0.3 });
             const canvas = document.createElement('canvas');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
@@ -74,8 +81,69 @@
             });
         }
 
-        // ... resto de las funciones (updateFileList, mergePDFs, etc) se mantienen igual ...
-        // (Nota: puedes copiar las funciones de lógica del código anterior aquí)
+        function updateFileList() {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            selectedFilesData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-800 p-3 rounded-lg border border-slate-700 flex items-center gap-3';
+                div.innerHTML = `
+                    <div class="w-16 h-16 bg-slate-950 rounded flex items-center justify-center overflow-hidden">
+                        ${item.preview ? `<img src="${item.preview}" style="transform: rotate(${item.rotation}deg)" class="object-contain h-full">` : '<span class="text-[10px] text-slate-500">PDF</span>'}
+                    </div>
+                    <div class="flex-1 truncate text-xs font-medium text-slate-200">${item.file.name}</div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="rotateFile(${index})" class="bg-slate-700 hover:bg-red-600 px-2 py-1 rounded text-[10px]">↻</button>
+                        <button onclick="removeFile(${index})" class="text-red-400">✕</button>
+                    </div>
+                `;
+                fileList.appendChild(div);
+            });
+            document.getElementById('merge-btn').disabled = selectedFilesData.length === 0;
+        }
+
+        function rotateFile(index) {
+            selectedFilesData[index].rotation = (selectedFilesData[index].rotation + 90) % 360;
+            updateFileList();
+        }
+
+        function removeFile(index) {
+            selectedFilesData.splice(index, 1);
+            updateFileList();
+        }
+
+        document.getElementById('merge-btn').addEventListener('click', async () => {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            try {
+                const { PDFDocument } = PDFLib;
+                const mergedPdf = await PDFDocument.create();
+                for (const item of selectedFilesData) {
+                    const arrayBuffer = await item.file.arrayBuffer();
+                    if (item.file.type === 'application/pdf') {
+                        const pdf = await PDFDocument.load(arrayBuffer);
+                        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                        pages.forEach(p => mergedPdf.addPage(p));
+                    } else {
+                        const bytes = new Uint8Array(arrayBuffer);
+                        const img = item.file.type === 'image/png' ? await mergedPdf.embedPng(bytes) : await mergedPdf.embedJpg(bytes);
+                        const page = mergedPdf.addPage([img.width, img.height]);
+                        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height, rotate: { degrees: item.rotation } });
+                    }
+                }
+                const bytes = await mergedPdf.save();
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = (document.getElementById('file-name').value || 'documento') + '.pdf';
+                link.click();
+            } catch (e) { alert('Error: ' + e.message); }
+            document.getElementById('loading-overlay').classList.add('hidden');
+        });
+
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+        dropZone.addEventListener('dragover', (e) => e.preventDefault());
+        document.getElementById('file-input').addEventListener('change', (e) => handleFiles(e.target.files));
     </script>
 </body>
 </html>
