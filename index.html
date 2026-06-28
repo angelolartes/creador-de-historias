@@ -1,98 +1,38 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Automobili Group - Generador de Flyers</title>
-
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Mesa de Trabajo Digital</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+        .columna { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; height: 400px; display: flex; flex-direction: column; }
+        .drop-zone { border: 2px dashed #aaa; padding: 20px; text-align: center; cursor: pointer; flex-grow: 1; margin: 10px 0; }
+        button { background: #2563eb; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+    </style>
 </head>
-
 <body>
-
-<div class="container">
-
-    <div class="panel">
-
-        <h1>🚗 Generador de Flyers</h1>
-
-        <input id="marca" placeholder="Marca">
-        <input id="modelo" placeholder="Modelo">
-        <input id="anio" placeholder="Año">
-        <input id="precio" placeholder="Precio">
-        <input id="anticipo" placeholder="Anticipo">
-        <input id="cuota" placeholder="Cuota">
-
-        <select id="tema">
-            <option value="deportivo">Deportivo</option>
-            <option value="financiacion">Financiación</option>
-            <option value="premium">Premium</option>
-        </select>
-
-        <input type="file" id="foto" accept="image/*">
-
-        <button onclick="generarFlyer()">
-            GENERAR FLYER
-        </button>
-
+    <h1>Mesa de Trabajo</h1>
+    <input type="text" id="nombreCliente" placeholder="Nombre del Cliente">
+    <div class="grid" id="tablero">
+        <!-- Generaremos las 6 columnas aquí -->
     </div>
 
-    <div class="preview">
-
-        <div id="flyer" class="flyer deportivo">
-
-            <div class="logo">
-                AUTOMOBILI GROUP
-            </div>
-
-            <img
-                id="imagenAuto"
-                class="imagen-auto"
-                src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200"
-            >
-
-            <div class="contenido">
-
-                <h2 id="tituloMarca">
-                    TOYOTA
-                </h2>
-
-                <h3 id="tituloModelo">
-                    COROLLA
-                </h3>
-
-                <div class="datos">
-
-                    <p id="datoAnio">Año: 2024</p>
-                    <p id="datoPrecio">Precio: $30.000.000</p>
-                    <p id="datoAnticipo">Anticipo: $5.000.000</p>
-                    <p id="datoCuota">Cuota: $299.000</p>
-
+    <script>
+        const tablero = document.getElementById('tablero');
+        for (let i = 1; i <= 6; i++) {
+            tablero.innerHTML += `
+                <div class="columna">
+                    <h3>PDF N°${i}</h3>
+                    <div class="drop-zone" ondrop="handleDrop(event)" ondragover="allowDrop(event)">
+                        Arrastra archivos aquí
+                    </div>
+                    <button onclick="alert('PDF N°${i} generado para ' + document.getElementById('nombreCliente').value)">Generar PDF</button>
                 </div>
-
-                <div class="beneficios">
-
-                    <p>✓ Tomamos usado</p>
-                    <p>✓ Financiación disponible</p>
-                    <p>✓ Entrega pactada</p>
-
-                </div>
-
-                <div class="cta">
-                    CONSULTÁ AHORA
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<script src="script.js"></script>
-
+            `;
+        }
+        function allowDrop(e) { e.preventDefault(); }
+        function handleDrop(e) { e.preventDefault(); alert("Archivo capturado en la columna"); }
+    </script>
 </body>
 </html>
-```
