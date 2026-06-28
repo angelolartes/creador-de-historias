@@ -126,10 +126,22 @@
                     } else {
                         const bytes = new Uint8Array(arrayBuffer);
                         const img = item.file.type === 'image/png' ? await mergedPdf.embedPng(bytes) : await mergedPdf.embedJpg(bytes);
-                        const page = mergedPdf.addPage([img.width, img.height]);
-                        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height, rotate: { degrees: item.rotation } });
+                        
+                        // Creamos la página con las dimensiones adecuadas según la rotación
+                        const isRotated = (item.rotation === 90 || item.rotation === 270);
+                        const page = mergedPdf.addPage(isRotated ? [img.height, img.width] : [img.width, img.height]);
+                        
+                        // Aplicamos la rotación a la página completa
+                        page.setRotation({ degrees: item.rotation });
+                        
+                        // Dibujamos la imagen sin el objeto de rotación interno que causaba el error
+                        page.drawImage(img, {
+                            x: 0,
+                            y: 0,
+                            width: img.width,
+                            height: img.height
+                        });
                     }
-                }
                 const bytes = await mergedPdf.save();
                 const blob = new Blob([bytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
